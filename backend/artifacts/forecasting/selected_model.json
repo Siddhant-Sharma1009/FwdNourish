@@ -1,0 +1,17 @@
+{
+  "selected_model": "Prophet",
+  "selection_metric": "sMAPE",
+  "direction": "lower_is_better",
+  "metrics": {
+    "Prophet": {
+      "MAE": 175.0124591916903,
+      "RMSE": 206.76989207266723,
+      "sMAPE": 21.325683413753033
+    },
+    "LSTM": {
+      "MAE": 251.11263404301872,
+      "RMSE": 323.9160440054178,
+      "sMAPE": 23.027590783230437
+    }
+  }
+}
