@@ -1,23 +1,18 @@
 import api from "./api";
+
 import type {
   Inventory,
   InventoryCreate,
 } from "../types/inventory";
 
 
-export async function getInventory(
-  tenantId: number
-): Promise<Inventory[]> {
+// ============================================================
+// GET ALL INVENTORY
+// Backend automatically returns inventory for logged-in tenant
+// ============================================================
 
-  const response = await api.get<Inventory[]>(
-    "/inventory/",
-    {
-      params: {
-        tenant_id: tenantId,
-      },
-    }
-  );
-
+export async function getInventory(): Promise<Inventory[]> {
+  const response = await api.get<Inventory[]>("/inventory/");
   return response.data;
 }
 
@@ -35,33 +30,32 @@ export async function createInventory(
 }
 
 
+// ============================================================
+// DELETE INVENTORY
+// Tenant is determined by JWT on backend
+// ============================================================
+
 export async function deleteInventory(
-  inventoryId: number,
-  tenantId: number
+  inventoryId: number
 ): Promise<void> {
 
   await api.delete(
-    `/inventory/${inventoryId}`,
-    {
-      params: {
-        tenant_id: tenantId,
-      },
-    }
+    `/inventory/${inventoryId}`
   );
 }
 
+
+// ============================================================
+// GET INVENTORY BY SKU
+// Tenant is determined by JWT on backend
+// ============================================================
+
 export async function getInventoryBySku(
-  sku: string,
-  tenantId: number
+  sku: string
 ): Promise<Inventory> {
 
   const response = await api.get<Inventory>(
-    `/inventory/sku/${encodeURIComponent(sku)}`,
-    {
-      params: {
-        tenant_id: tenantId,
-      },
-    }
+    `/inventory/sku/${encodeURIComponent(sku)}`
   );
 
   return response.data;

@@ -5,3 +5,7 @@ from app.models.transaction import Transaction
 from app.models.donation import Donation
 from app.models.expiry_alert import ExpiryAlert
 from app.models.ai_prediction import AIPrediction
+from app.models.ngo_requirement import NGORequirement
+from app.models.donation_match import DonationMatch
+from app.models.pickup import Pickup
+from app.models.notification import Notification

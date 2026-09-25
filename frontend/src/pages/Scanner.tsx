@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import QRBarcodeScanner from "../components/common/QRBarcodeScanner";
+import { useAuth } from "../context/AuthContext";
 
 import type { Inventory } from "../types/inventory";
 import type { Category } from "../types/category";
@@ -34,8 +35,6 @@ interface ItemForm {
   expiry_threshold_days: number;
 }
 
-const TENANT_ID = 1;
-
 function getToday() {
   return new Date().toISOString().split("T")[0];
 }
@@ -55,19 +54,30 @@ function emptyForm(): ItemForm {
 }
 
 export default function Scanner() {
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
+
   const [categories, setCategories] = useState<Category[]>([]);
 
   // Currently scanned/found item
-  const [currentItem, setCurrentItem] = useState<Inventory | null>(null);
+  const [currentItem, setCurrentItem] =
+    useState<Inventory | null>(null);
 
   // Form for the currently scanned inventory item
-  const [form, setForm] = useState<ItemForm>(emptyForm());
+  const [form, setForm] = useState<ItemForm>(
+    emptyForm()
+  );
 
   // Items waiting to be added to inventory
-  const [cart, setCart] = useState<ScannerCartItem[]>([]);
+  const [cart, setCart] = useState<ScannerCartItem[]>(
+    []
+  );
 
-  const [checkingSku, setCheckingSku] = useState(false);
-  const [addingToInventory, setAddingToInventory] = useState(false);
+  const [checkingSku, setCheckingSku] =
+    useState(false);
+
+  const [addingToInventory, setAddingToInventory] =
+    useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -119,15 +129,23 @@ export default function Scanner() {
 
     if (!scannedSku) return;
 
+    if (!tenantId) {
+      setError(
+        "Tenant information is not available. Please log in again."
+      );
+      return;
+    }
+
     setCheckingSku(true);
     setError("");
     setMessage("");
 
     try {
-      const inventory = await getInventoryBySku(
-        scannedSku,
-        TENANT_ID
-      );
+      const inventory =
+        await getInventoryBySku(
+          scannedSku,
+          tenantId
+        );
 
       /*
        * Item exists in inventory.
@@ -139,15 +157,22 @@ export default function Scanner() {
       setForm({
         sku: inventory.sku ?? scannedSku,
         name: inventory.name ?? "",
-        category_id: inventory.category_id ?? 0,
+        category_id:
+          inventory.category_id ?? 0,
         quantity: 1,
         unit: inventory.unit ?? "pcs",
-        batch_number: inventory.batch_number ?? "",
+        batch_number:
+          inventory.batch_number ?? "",
         purchase_date:
-          inventory.purchase_date?.toString().slice(0, 10) ??
+          inventory.purchase_date
+            ?.toString()
+            .slice(0, 10) ??
           getToday(),
         expiry_date:
-          inventory.expiry_date?.toString().slice(0, 10) ?? "",
+          inventory.expiry_date
+            ?.toString()
+            .slice(0, 10) ??
+          "",
         expiry_threshold_days:
           inventory.expiry_threshold_days ?? 3,
       });
@@ -186,7 +211,9 @@ export default function Scanner() {
    */
   function validateForm() {
     if (!currentItem) {
-      setError("No inventory item is selected.");
+      setError(
+        "No inventory item is selected."
+      );
       return false;
     }
 
@@ -201,7 +228,9 @@ export default function Scanner() {
     }
 
     if (!form.category_id) {
-      setError("Please select a category.");
+      setError(
+        "Please select a category."
+      );
       return false;
     }
 
@@ -211,22 +240,30 @@ export default function Scanner() {
     }
 
     if (form.quantity <= 0) {
-      setError("Quantity must be greater than zero.");
+      setError(
+        "Quantity must be greater than zero."
+      );
       return false;
     }
 
     if (!form.purchase_date) {
-      setError("Purchase date is required.");
+      setError(
+        "Purchase date is required."
+      );
       return false;
     }
 
     if (!form.expiry_date) {
-      setError("Expiry date is required.");
+      setError(
+        "Expiry date is required."
+      );
       return false;
     }
 
     if (form.expiry_threshold_days < 0) {
-      setError("Expiry threshold cannot be negative.");
+      setError(
+        "Expiry threshold cannot be negative."
+      );
       return false;
     }
 
@@ -239,12 +276,16 @@ export default function Scanner() {
    * ---------------------------------------------------------
    */
   function addToCart() {
-    if (!validateForm() || !currentItem) return;
+    if (!validateForm() || !currentItem) {
+      return;
+    }
 
     setCart((previousCart) => {
-      const existingIndex = previousCart.findIndex(
-        (cartItem) => cartItem.item.id === currentItem.id
-      );
+      const existingIndex =
+        previousCart.findIndex(
+          (cartItem) =>
+            cartItem.item.id === currentItem.id
+        );
 
       /*
        * If the same inventory item was scanned again,
@@ -253,11 +294,13 @@ export default function Scanner() {
       if (existingIndex !== -1) {
         const updatedCart = [...previousCart];
 
-        const existing = updatedCart[existingIndex];
+        const existing =
+          updatedCart[existingIndex];
 
         updatedCart[existingIndex] = {
           ...existing,
-          quantity: existing.quantity + form.quantity,
+          quantity:
+            existing.quantity + form.quantity,
 
           /*
            * Keep the latest entered batch/expiry information.
@@ -269,7 +312,8 @@ export default function Scanner() {
           batch_number: form.batch_number,
           purchase_date: form.purchase_date,
           expiry_date: form.expiry_date,
-          expiry_threshold_days: form.expiry_threshold_days,
+          expiry_threshold_days:
+            form.expiry_threshold_days,
         };
 
         return updatedCart;
@@ -319,7 +363,8 @@ export default function Scanner() {
   function removeFromCart(inventoryId: number) {
     setCart((previousCart) =>
       previousCart.filter(
-        (cartItem) => cartItem.item.id !== inventoryId
+        (cartItem) =>
+          cartItem.item.id !== inventoryId
       )
     );
   }
@@ -373,7 +418,16 @@ export default function Scanner() {
    */
   async function addAllToInventory() {
     if (cart.length === 0) {
-      setError("The inventory list is empty.");
+      setError(
+        "The inventory list is empty."
+      );
+      return;
+    }
+
+    if (!tenantId) {
+      setError(
+        "Tenant information is not available. Please log in again."
+      );
       return;
     }
 
@@ -384,7 +438,7 @@ export default function Scanner() {
     try {
       for (const cartItem of cart) {
         await createTransaction({
-          tenant_id: TENANT_ID,
+          tenant_id: tenantId,
           inventory_id: cartItem.item.id,
           transaction_type: "PURCHASE",
           quantity: cartItem.quantity,
@@ -423,7 +477,8 @@ export default function Scanner() {
    * ---------------------------------------------------------
    */
   const totalQuantity = cart.reduce(
-    (total, cartItem) => total + cartItem.quantity,
+    (total, cartItem) =>
+      total + cartItem.quantity,
     0
   );
 
@@ -435,6 +490,7 @@ export default function Scanner() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
+
         {/* PAGE HEADER */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900">
@@ -462,10 +518,10 @@ export default function Scanner() {
         )}
 
         <div className="grid gap-6 lg:grid-cols-12">
-          {/* =================================================
-              LEFT SIDE
-          ================================================== */}
+
+          {/* LEFT SIDE */}
           <div className="space-y-6 lg:col-span-7">
+
             {/* SCANNER */}
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-5 py-4">
@@ -480,7 +536,9 @@ export default function Scanner() {
               </div>
 
               <div className="p-5">
-                <QRBarcodeScanner onScan={handleScan} />
+                <QRBarcodeScanner
+                  onScan={handleScan}
+                />
               </div>
             </div>
 
@@ -491,13 +549,13 @@ export default function Scanner() {
               </div>
             )}
 
-            {/* =================================================
-                EXISTING INVENTORY ITEM FORM
-            ================================================== */}
+            {/* EXISTING INVENTORY ITEM FORM */}
             {currentItem && (
               <div className="rounded-2xl border border-emerald-200 bg-white shadow-sm">
+
                 <div className="border-b border-emerald-100 bg-emerald-50 px-5 py-4">
                   <div className="flex items-center justify-between gap-3">
+
                     <div>
                       <span className="rounded-md bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-800">
                         Item Found
@@ -519,16 +577,19 @@ export default function Scanner() {
 
                       <p className="text-lg font-bold text-emerald-700">
                         {currentItem.quantity}
+
                         <span className="ml-1 text-xs font-normal">
                           {currentItem.unit}
                         </span>
                       </p>
                     </div>
+
                   </div>
                 </div>
 
                 <div className="p-5">
                   <div className="grid gap-4 sm:grid-cols-2">
+
                     {/* SKU */}
                     <div>
                       <label className="mb-1 block text-xs font-semibold text-slate-700">
@@ -539,7 +600,10 @@ export default function Scanner() {
                         type="text"
                         value={form.sku}
                         onChange={(e) =>
-                          updateForm("sku", e.target.value)
+                          updateForm(
+                            "sku",
+                            e.target.value
+                          )
                         }
                         className="h-10 w-full rounded-xl border border-slate-300 px-3 text-sm font-mono outline-none focus:border-emerald-500"
                       />
@@ -555,7 +619,10 @@ export default function Scanner() {
                         type="text"
                         value={form.name}
                         onChange={(e) =>
-                          updateForm("name", e.target.value)
+                          updateForm(
+                            "name",
+                            e.target.value
+                          )
                         }
                         className="h-10 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500"
                       />
@@ -581,14 +648,16 @@ export default function Scanner() {
                           Select Category
                         </option>
 
-                        {categories.map((category) => (
-                          <option
-                            key={category.id}
-                            value={category.id}
-                          >
-                            {category.name}
-                          </option>
-                        ))}
+                        {categories.map(
+                          (category) => (
+                            <option
+                              key={category.id}
+                              value={category.id}
+                            >
+                              {category.name}
+                            </option>
+                          )
+                        )}
                       </select>
                     </div>
 
@@ -607,7 +676,9 @@ export default function Scanner() {
                             "quantity",
                             Math.max(
                               1,
-                              Number(e.target.value) || 1
+                              Number(
+                                e.target.value
+                              ) || 1
                             )
                           )
                         }
@@ -625,7 +696,10 @@ export default function Scanner() {
                         type="text"
                         value={form.unit}
                         onChange={(e) =>
-                          updateForm("unit", e.target.value)
+                          updateForm(
+                            "unit",
+                            e.target.value
+                          )
                         }
                         placeholder="pcs, kg, box"
                         className="h-10 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500"
@@ -699,19 +773,24 @@ export default function Scanner() {
                       <input
                         type="number"
                         min="0"
-                        value={form.expiry_threshold_days}
+                        value={
+                          form.expiry_threshold_days
+                        }
                         onChange={(e) =>
                           updateForm(
                             "expiry_threshold_days",
                             Math.max(
                               0,
-                              Number(e.target.value) || 0
+                              Number(
+                                e.target.value
+                              ) || 0
                             )
                           )
                         }
                         className="h-10 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500"
                       />
                     </div>
+
                   </div>
 
                   {/* ADD TO CART */}
@@ -729,16 +808,19 @@ export default function Scanner() {
               </div>
             )}
 
-            {/* =================================================
-                NOT FOUND MESSAGE
-            ================================================== */}
+            {/* NOT FOUND MESSAGE */}
             {!checkingSku &&
               !currentItem &&
               form.sku &&
-              message.includes("not in the inventory") && (
+              message.includes(
+                "not in the inventory"
+              ) && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
                   <div className="flex gap-3">
-                    <div className="text-xl">⚠️</div>
+
+                    <div className="text-xl">
+                      ⚠️
+                    </div>
 
                     <div>
                       <h3 className="font-bold text-amber-900">
@@ -754,23 +836,31 @@ export default function Scanner() {
                       </p>
 
                       <p className="mt-2 text-sm text-amber-700">
-                        Please use <strong>manual entry</strong>{" "}
-                        or <strong>CSV entry</strong> to add this
-                        product.
+                        Please use{" "}
+                        <strong>
+                          manual entry
+                        </strong>{" "}
+                        or{" "}
+                        <strong>
+                          CSV entry
+                        </strong>{" "}
+                        to add this product.
                       </p>
                     </div>
+
                   </div>
                 </div>
               )}
+
           </div>
 
-          {/* =================================================
-              RIGHT SIDE — CART
-          ================================================== */}
+          {/* RIGHT SIDE — CART */}
           <div className="lg:col-span-5">
             <div className="sticky top-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
               {/* CART HEADER */}
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">
                     Inventory List
@@ -791,13 +881,18 @@ export default function Scanner() {
                     Clear All
                   </button>
                 )}
+
               </div>
 
               {/* CART ITEMS */}
               <div className="max-h-[520px] divide-y divide-slate-100 overflow-y-auto">
+
                 {cart.length === 0 ? (
                   <div className="px-5 py-16 text-center">
-                    <div className="text-3xl">📦</div>
+
+                    <div className="text-3xl">
+                      📦
+                    </div>
 
                     <p className="mt-3 text-sm font-semibold text-slate-400">
                       No items selected
@@ -806,6 +901,7 @@ export default function Scanner() {
                     <p className="mt-1 text-xs text-slate-400">
                       Scan an inventory item to add it here.
                     </p>
+
                   </div>
                 ) : (
                   cart.map((cartItem) => (
@@ -813,7 +909,9 @@ export default function Scanner() {
                       key={cartItem.item.id}
                       className="p-4"
                     >
+
                       <div className="flex items-start justify-between gap-3">
+
                         <div className="min-w-0">
                           <h3 className="truncate text-sm font-bold text-slate-800">
                             {cartItem.name}
@@ -825,33 +923,40 @@ export default function Scanner() {
 
                           <p className="mt-1 text-xs text-slate-500">
                             Batch:{" "}
-                            {cartItem.batch_number || "N/A"}
+                            {cartItem.batch_number ||
+                              "N/A"}
                           </p>
 
                           <p className="text-xs text-slate-500">
                             Expiry:{" "}
-                            {cartItem.expiry_date || "N/A"}
+                            {cartItem.expiry_date ||
+                              "N/A"}
                           </p>
                         </div>
 
                         <button
                           type="button"
                           onClick={() =>
-                            removeFromCart(cartItem.item.id)
+                            removeFromCart(
+                              cartItem.item.id
+                            )
                           }
                           className="rounded-lg px-2 py-1 text-xs text-slate-400 hover:bg-rose-50 hover:text-rose-600"
                         >
                           ✕
                         </button>
+
                       </div>
 
                       {/* QUANTITY */}
                       <div className="mt-3 flex items-center justify-between">
+
                         <span className="text-xs font-semibold text-slate-500">
                           Quantity
                         </span>
 
                         <div className="flex items-center rounded-lg border border-slate-200">
+
                           <button
                             type="button"
                             onClick={() =>
@@ -881,20 +986,25 @@ export default function Scanner() {
                           >
                             +
                           </button>
+
                         </div>
                       </div>
+
                     </div>
                   ))
                 )}
+
               </div>
 
               {/* FINAL ACTION */}
               <div className="border-t border-slate-100 bg-slate-50 p-4">
+
                 <button
                   type="button"
                   onClick={addAllToInventory}
                   disabled={
-                    cart.length === 0 || addingToInventory
+                    cart.length === 0 ||
+                    addingToInventory
                   }
                   className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -907,9 +1017,12 @@ export default function Scanner() {
                   All selected products will be added in one
                   inventory operation.
                 </p>
+
               </div>
+
             </div>
           </div>
+
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 
+import { useAuth } from "../context/AuthContext";
 import type { Inventory } from "../types/inventory";
 import type { Transaction } from "../types/transaction";
 
@@ -10,20 +11,47 @@ import { getTransactions } from "../services/transactionApi";
 import type { AIPrediction } from "../services/aiPredictionApi";
 import { getAIPredictions } from "../services/aiPredictionApi";
 
-
 function Dashboard() {
-  const tenantId = 3;
+  const { user, loading: authLoading } = useAuth();
 
-  // Existing dashboard data
+  // ---------------------------------------------------------
+  // AUTH LOADING
+  // ---------------------------------------------------------
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <p className="text-sm text-slate-500">
+          Loading account...
+        </p>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------
+  // NOT LOGGED IN
+  // ---------------------------------------------------------
+
+  if (!user) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-sm text-slate-500">
+          Please log in to continue.
+        </p>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------
+  // STATE
+  // ---------------------------------------------------------
+
   const [inventory, setInventory] = useState<Inventory[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-
-  // AI prediction data
   const [aiPredictions, setAIPredictions] = useState<AIPrediction[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-
 
   // ---------------------------------------------------------
   // LOAD DASHBOARD DATA
@@ -39,29 +67,35 @@ function Dashboard() {
         transactionData,
         aiPredictionData,
       ] = await Promise.all([
-        getInventory(tenantId),
-        getTransactions(tenantId),
+        getInventory(),
+        getTransactions(),
         getAIPredictions(),
       ]);
 
       setInventory(inventoryData);
       setTransactions(transactionData);
       setAIPredictions(aiPredictionData);
-
     } catch (err) {
       console.error(err);
       setError("Failed to load dashboard data.");
-
     } finally {
       setLoading(false);
     }
   }
 
+  // ---------------------------------------------------------
+  // RBAC-AWARE DATA LOADING
+  // ---------------------------------------------------------
 
   useEffect(() => {
-    loadDashboard();
-  }, []);
+    if (authLoading) return;
+    if (!user) return;
 
+    if (user.role !== "TENANT") return;
+    if (user.status !== "ACTIVE") return;
+
+    loadDashboard();
+  }, [authLoading, user]);
 
   // ---------------------------------------------------------
   // INVENTORY / EXPIRY CALCULATIONS
@@ -73,7 +107,6 @@ function Dashboard() {
     expiredItems,
     expiringSoonItems,
   } = useMemo(() => {
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -82,37 +115,27 @@ function Dashboard() {
     const expiredList: Inventory[] = [];
     const expiringSoonList: Inventory[] = [];
 
-
     inventory.forEach((item) => {
-
       stockSum += item.quantity;
-
 
       const expiryDate = new Date(item.expiry_date);
       expiryDate.setHours(0, 0, 0, 0);
 
-
       const diffTime =
         expiryDate.getTime() - today.getTime();
-
 
       const daysRemaining = Math.ceil(
         diffTime / (1000 * 60 * 60 * 24)
       );
 
-
       if (daysRemaining < 0) {
-
         expiredList.push(item);
-
       } else if (
         daysRemaining <= item.expiry_threshold_days
       ) {
-
         expiringSoonList.push(item);
       }
     });
-
 
     return {
       totalItems: inventory.length,
@@ -120,9 +143,7 @@ function Dashboard() {
       expiredItems: expiredList,
       expiringSoonItems: expiringSoonList,
     };
-
   }, [inventory]);
-
 
   // ---------------------------------------------------------
   // EXISTING DASHBOARD STATISTICS
@@ -135,7 +156,6 @@ function Dashboard() {
       description: "Inventory items registered",
       accent: "border-slate-200 text-slate-900",
     },
-
     {
       title: "Total Stock",
       value: totalStock.toLocaleString(),
@@ -143,7 +163,6 @@ function Dashboard() {
       accent:
         "border-emerald-500 text-emerald-700 bg-emerald-50/40",
     },
-
     {
       title: "Expiring Soon",
       value: expiringSoonItems.length.toString(),
@@ -151,7 +170,6 @@ function Dashboard() {
       accent:
         "border-amber-400 text-amber-700 bg-amber-50/40",
     },
-
     {
       title: "Expired",
       value: expiredItems.length.toString(),
@@ -161,25 +179,17 @@ function Dashboard() {
     },
   ];
 
-
   // ---------------------------------------------------------
   // AI STATISTICS
   // ---------------------------------------------------------
-
-  const lowRiskCount = aiPredictions.filter(
-    (item) => item.risk_level === "LOW"
-  ).length;
-
 
   const mediumRiskCount = aiPredictions.filter(
     (item) => item.risk_level === "MEDIUM"
   ).length;
 
-
   const highRiskCount = aiPredictions.filter(
     (item) => item.risk_level === "HIGH"
   ).length;
-
 
   const totalRecommendedPurchase =
     aiPredictions.reduce(
@@ -191,7 +201,6 @@ function Dashboard() {
       0
     );
 
-
   // ---------------------------------------------------------
   // LOADING STATE
   // ---------------------------------------------------------
@@ -199,9 +208,7 @@ function Dashboard() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-
         <div className="flex flex-col items-center gap-2">
-
           <div
             className="
               h-8 w-8
@@ -216,13 +223,10 @@ function Dashboard() {
           <p className="text-sm font-medium text-slate-500">
             Loading dashboard...
           </p>
-
         </div>
-
       </div>
     );
   }
-
 
   // ---------------------------------------------------------
   // DASHBOARD
@@ -231,9 +235,7 @@ function Dashboard() {
   return (
     <div className="space-y-6">
 
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
+      {/* HEADER */}
 
       <div
         className="
@@ -245,9 +247,7 @@ function Dashboard() {
           sm:justify-between
         "
       >
-
         <div>
-
           <h1
             className="
               text-2xl
@@ -262,15 +262,10 @@ function Dashboard() {
           <p className="text-sm text-slate-500">
             Overview of your operations and inventory alerts.
           </p>
-
         </div>
-
       </div>
 
-
-      {/* =====================================================
-          ERROR ALERT
-      ===================================================== */}
+      {/* ERROR */}
 
       {error && (
         <div
@@ -290,15 +285,10 @@ function Dashboard() {
         </div>
       )}
 
-
-      {/* =====================================================
-          EXISTING STATISTICS
-      ===================================================== */}
+      {/* STATISTICS */}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
         {stats.map((stat) => (
-
           <div
             key={stat.title}
             className={`
@@ -311,7 +301,6 @@ function Dashboard() {
               ${stat.accent}
             `}
           >
-
             <p
               className="
                 text-xs
@@ -338,31 +327,19 @@ function Dashboard() {
             <p className="mt-1 text-xs text-slate-500">
               {stat.description}
             </p>
-
           </div>
-
         ))}
-
       </div>
 
-
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
+      {/* MAIN CONTENT */}
 
       <div className="grid gap-6 lg:grid-cols-3">
 
-
-        {/* ===================================================
-            AI PREDICTION OVERVIEW
-        =================================================== */}
+        {/* AI PREDICTION OVERVIEW */}
 
         <div className="space-y-4 lg:col-span-3">
 
-          {/* AI HEADER */}
-
           <div>
-
             <h2
               className="
                 text-lg
@@ -377,13 +354,9 @@ function Dashboard() {
               Prophet-based demand forecasting, waste-risk
               detection and smart reorder recommendations.
             </p>
-
           </div>
 
-
-          {/* =================================================
-              AI SUMMARY CARDS
-          ================================================= */}
+          {/* AI SUMMARY CARDS */}
 
           <div
             className="
@@ -393,7 +366,6 @@ function Dashboard() {
               lg:grid-cols-4
             "
           >
-
 
             {/* AI PREDICTIONS */}
 
@@ -407,7 +379,6 @@ function Dashboard() {
                 shadow-sm
               "
             >
-
               <p
                 className="
                   text-xs
@@ -434,9 +405,7 @@ function Dashboard() {
               <p className="mt-1 text-xs text-slate-500">
                 Inventory items analyzed
               </p>
-
             </div>
-
 
             {/* HIGH RISK */}
 
@@ -450,7 +419,6 @@ function Dashboard() {
                 shadow-sm
               "
             >
-
               <p
                 className="
                   text-xs
@@ -477,9 +445,7 @@ function Dashboard() {
               <p className="mt-1 text-xs text-rose-600">
                 Immediate attention
               </p>
-
             </div>
-
 
             {/* MEDIUM RISK */}
 
@@ -493,7 +459,6 @@ function Dashboard() {
                 shadow-sm
               "
             >
-
               <p
                 className="
                   text-xs
@@ -520,9 +485,7 @@ function Dashboard() {
               <p className="mt-1 text-xs text-amber-600">
                 Requires review
               </p>
-
             </div>
-
 
             {/* RECOMMENDED PURCHASE */}
 
@@ -536,7 +499,6 @@ function Dashboard() {
                 shadow-sm
               "
             >
-
               <p
                 className="
                   text-xs
@@ -568,15 +530,11 @@ function Dashboard() {
               <p className="mt-1 text-xs text-emerald-600">
                 Total recommended units
               </p>
-
             </div>
 
           </div>
 
-
-          {/* =================================================
-              AI PREDICTION TABLE
-          ================================================= */}
+          {/* AI PREDICTION TABLE */}
 
           <div
             className="
@@ -588,9 +546,6 @@ function Dashboard() {
               shadow-sm
             "
           >
-
-            {/* TABLE HEADER */}
-
             <div
               className="
                 border-b
@@ -598,7 +553,6 @@ function Dashboard() {
                 p-5
               "
             >
-
               <h3
                 className="
                   text-base
@@ -619,14 +573,9 @@ function Dashboard() {
                 Latest demand forecast, waste risk and
                 reorder recommendations.
               </p>
-
             </div>
 
-
-            {/* EMPTY STATE */}
-
             {aiPredictions.length === 0 ? (
-
               <div
                 className="
                   p-8
@@ -637,13 +586,8 @@ function Dashboard() {
               >
                 No AI predictions available yet.
               </div>
-
             ) : (
-
-              /* TABLE */
-
               <div className="overflow-x-auto">
-
                 <table
                   className="
                     w-full
@@ -651,11 +595,7 @@ function Dashboard() {
                     text-sm
                   "
                 >
-
-                  {/* TABLE HEAD */}
-
                   <thead className="bg-slate-50">
-
                     <tr
                       className="
                         text-left
@@ -666,7 +606,6 @@ function Dashboard() {
                         text-slate-500
                       "
                     >
-
                       <th className="px-5 py-3">
                         Inventory
                       </th>
@@ -686,13 +625,8 @@ function Dashboard() {
                       <th className="px-5 py-3">
                         Recommended Purchase
                       </th>
-
                     </tr>
-
                   </thead>
-
-
-                  {/* TABLE BODY */}
 
                   <tbody
                     className="
@@ -700,7 +634,6 @@ function Dashboard() {
                       divide-slate-100
                     "
                   >
-
                     {aiPredictions
                       .slice(0, 10)
                       .map((prediction) => {
@@ -712,18 +645,13 @@ function Dashboard() {
                               ? "bg-amber-100 text-amber-700"
                               : "bg-emerald-100 text-emerald-700";
 
-
                         return (
-
                           <tr
                             key={prediction.id}
                             className="
                               hover:bg-slate-50/70
                             "
                           >
-
-                            {/* INVENTORY */}
-
                             <td
                               className="
                                 px-5
@@ -734,9 +662,6 @@ function Dashboard() {
                             >
                               {prediction.inventory_id}
                             </td>
-
-
-                            {/* DEMAND */}
 
                             <td
                               className="
@@ -753,9 +678,6 @@ function Dashboard() {
                               )}
                             </td>
 
-
-                            {/* RISK SCORE */}
-
                             <td
                               className="
                                 px-5
@@ -767,11 +689,7 @@ function Dashboard() {
                               {prediction.risk_score.toFixed(2)}
                             </td>
 
-
-                            {/* RISK LEVEL */}
-
                             <td className="px-5 py-4">
-
                               <span
                                 className={`
                                   rounded-full
@@ -784,11 +702,7 @@ function Dashboard() {
                               >
                                 {prediction.risk_level}
                               </span>
-
                             </td>
-
-
-                            {/* RECOMMENDED PURCHASE */}
 
                             <td
                               className="
@@ -805,28 +719,17 @@ function Dashboard() {
                                 }
                               )}
                             </td>
-
                           </tr>
-
                         );
                       })}
-
                   </tbody>
-
                 </table>
-
               </div>
-
             )}
-
           </div>
-
         </div>
 
-
-        {/* ===================================================
-            RECENT TRANSACTIONS
-        =================================================== */}
+        {/* RECENT TRANSACTIONS */}
 
         <div
           className="
@@ -838,7 +741,6 @@ function Dashboard() {
             lg:col-span-2
           "
         >
-
           <div
             className="
               flex
@@ -849,9 +751,7 @@ function Dashboard() {
               p-5
             "
           >
-
             <div>
-
               <h2
                 className="
                   text-base
@@ -870,9 +770,7 @@ function Dashboard() {
               >
                 Latest stock activity log
               </p>
-
             </div>
-
 
             <Link
               to="/transactions"
@@ -886,12 +784,9 @@ function Dashboard() {
             >
               View all
             </Link>
-
           </div>
 
-
           {transactions.length === 0 ? (
-
             <div
               className="
                 p-8
@@ -902,15 +797,11 @@ function Dashboard() {
             >
               No transactions recorded yet.
             </div>
-
           ) : (
-
             <div className="divide-y divide-slate-100">
-
               {transactions
                 .slice(0, 5)
                 .map((t) => (
-
                   <div
                     key={t.id}
                     className="
@@ -921,7 +812,6 @@ function Dashboard() {
                       hover:bg-slate-50/50
                     "
                   >
-
                     <div
                       className="
                         min-w-0
@@ -929,7 +819,6 @@ function Dashboard() {
                         pr-4
                       "
                     >
-
                       <p
                         className="
                           text-sm
@@ -951,12 +840,9 @@ function Dashboard() {
                         {t.note ||
                           "Standard Inventory Log"}
                       </p>
-
                     </div>
 
-
                     <div className="text-right">
-
                       <span
                         className="
                           inline-block
@@ -983,23 +869,14 @@ function Dashboard() {
                           t.created_at
                         ).toLocaleDateString()}
                       </p>
-
                     </div>
-
                   </div>
-
                 ))}
-
             </div>
-
           )}
-
         </div>
 
-
-        {/* ===================================================
-            EXPIRY ATTENTION
-        =================================================== */}
+        {/* EXPIRY ATTENTION */}
 
         <div
           className="
@@ -1010,7 +887,6 @@ function Dashboard() {
             shadow-sm
           "
         >
-
           <div
             className="
               flex
@@ -1021,9 +897,7 @@ function Dashboard() {
               p-5
             "
           >
-
             <div>
-
               <h2
                 className="
                   text-base
@@ -1042,9 +916,7 @@ function Dashboard() {
               >
                 Items requiring resolution
               </p>
-
             </div>
-
 
             <Link
               to="/expiry-alerts"
@@ -1058,21 +930,15 @@ function Dashboard() {
             >
               View alerts
             </Link>
-
           </div>
-
 
           <div className="space-y-3 p-4">
 
-
-            {/* =================================================
-                EXPIRED ITEMS
-            ================================================= */}
+            {/* EXPIRED ITEMS */}
 
             {expiredItems
               .slice(0, 3)
               .map((item) => (
-
                 <div
                   key={item.id}
                   className="
@@ -1086,9 +952,7 @@ function Dashboard() {
                     p-3.5
                   "
                 >
-
                   <div className="min-w-0">
-
                     <p
                       className="
                         truncate
@@ -1109,9 +973,7 @@ function Dashboard() {
                     >
                       SKU: {item.sku}
                     </p>
-
                   </div>
-
 
                   <span
                     className="
@@ -1127,20 +989,14 @@ function Dashboard() {
                   >
                     Expired
                   </span>
-
                 </div>
-
               ))}
 
-
-            {/* =================================================
-                EXPIRING SOON ITEMS
-            ================================================= */}
+            {/* EXPIRING SOON */}
 
             {expiringSoonItems
               .slice(0, 2)
               .map((item) => (
-
                 <div
                   key={item.id}
                   className="
@@ -1154,9 +1010,7 @@ function Dashboard() {
                     p-3.5
                   "
                 >
-
                   <div className="min-w-0">
-
                     <p
                       className="
                         truncate
@@ -1177,9 +1031,7 @@ function Dashboard() {
                     >
                       SKU: {item.sku}
                     </p>
-
                   </div>
-
 
                   <span
                     className="
@@ -1195,19 +1047,13 @@ function Dashboard() {
                   >
                     Expiring Soon
                   </span>
-
                 </div>
-
               ))}
 
-
-            {/* =================================================
-                EMPTY EXPIRY STATE
-            ================================================= */}
+            {/* EMPTY EXPIRY STATE */}
 
             {expiredItems.length === 0 &&
               expiringSoonItems.length === 0 && (
-
                 <div
                   className="
                     rounded-lg
@@ -1218,7 +1064,6 @@ function Dashboard() {
                     text-center
                   "
                 >
-
                   <p
                     className="
                       text-sm
@@ -1239,20 +1084,13 @@ function Dashboard() {
                     No expiring items need attention
                     right now.
                   </p>
-
                 </div>
-
               )}
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }
-
 
 export default Dashboard;

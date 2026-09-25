@@ -1,3 +1,8 @@
+import React from "react";
+
+import { useAuth } from "../../context/AuthContext";
+import NotificationBell from "../common/NotificationBell";
+
 interface NavbarProps {
   mobileMenuOpen: boolean;
   setMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -7,72 +12,112 @@ export default function Navbar({
   mobileMenuOpen,
   setMobileMenuOpen,
 }: NavbarProps) {
+  const { user, logout } = useAuth();
+
+  const title =
+    user?.role === "ADMIN"
+      ? "Platform Administration"
+      : user?.role === "NGO"
+      ? "NGO Workspace"
+      : "Inventory Management";
+
+  // Dynamic User Initials
+  const userInitials =
+    user?.full_name
+      ?.split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "U";
+
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-200/80 bg-white/80 px-4 backdrop-blur-md md:px-8">
-      {/* Left Side */}
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-800 bg-slate-900 px-4 shadow-md md:px-8">
+      {/* Left Section: Mobile Toggle & Page Title */}
       <div className="flex items-center gap-3">
-        {/* Mobile Toggle Button */}
         <button
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 active:scale-95 md:hidden"
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-800/60 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white md:hidden"
+          aria-label="Toggle navigation menu"
         >
           {mobileMenuOpen ? (
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           ) : (
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           )}
         </button>
 
-        <div>
-          <h2 className="text-base font-semibold text-slate-800 leading-none">
-            Inventory Management
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-base font-bold tracking-tight text-white md:text-lg">
+            {title}
           </h2>
-          <span className="mt-1 hidden text-[11px] font-medium text-emerald-600 sm:inline-block md:hidden">
-            FoodWaste AI Active
-          </span>
         </div>
       </div>
 
-      {/* Right Side */}
-      <div className="flex items-center gap-4">
-        {/* Quick Actions / Notifications */}
-        <button
-          type="button"
-          className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-          aria-label="View notifications"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white" />
-        </button>
+      {/* Right Section */}
+      <div className="flex items-center gap-3">
+        {/* Notification Bell */}
+        <NotificationBell />
 
-        <div className="h-5 w-px bg-slate-200" />
-
-        {/* User / Profile Info */}
-        <div className="flex items-center gap-3">
-          <div className="hidden text-right sm:block">
-            <p className="text-sm font-semibold text-slate-800 leading-none">
-              Fresh Bites Restaurant
+        {/* User Status Card */}
+        <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-800/40 py-1.5 pl-2 pr-3">
+          <div className="hidden sm:block">
+            <p className="text-xs font-semibold leading-none text-slate-200">
+              {user?.full_name || "User"}
             </p>
-            <div className="mt-1 flex items-center justify-end gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <p className="text-[11px] font-medium text-slate-500 leading-none">
-                Restaurant Mode
-              </p>
-            </div>
           </div>
 
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-800 ring-2 ring-emerald-600/20 shadow-sm">
-            FB
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200/90 bg-emerald-500/10 text-xs font-bold text-emerald-300">
+            {userInitials}
           </div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          type="button"
+          onClick={logout}
+          className="group flex h-9 items-center gap-2 rounded-xl border border-slate-800 bg-slate-800/60 px-3 text-xs font-medium text-slate-300 transition-all hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
+        >
+          <svg
+            className="h-4 w-4 text-slate-400 transition-colors group-hover:text-red-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.8}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            />
+          </svg>
+
+          <span className="hidden sm:inline">Logout</span>
+        </button>
       </div>
     </header>
   );

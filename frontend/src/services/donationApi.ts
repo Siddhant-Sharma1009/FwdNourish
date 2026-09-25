@@ -1,16 +1,14 @@
 import api from "./api";
 
 import type {
-  Donation,
-  DonationCreate,
+  DonationCreateRequest,
+  DonationResponse,
 } from "../types/donation";
 
-
 export async function createDonation(
-  data: DonationCreate
-): Promise<Donation> {
-
-  const response = await api.post<Donation>(
+  data: DonationCreateRequest
+): Promise<DonationResponse> {
+  const response = await api.post<DonationResponse>(
     "/donations/",
     data
   );
@@ -18,18 +16,21 @@ export async function createDonation(
   return response.data;
 }
 
+export async function getMyDonations(): Promise<
+  DonationResponse[]
+> {
+  const response = await api.get<DonationResponse[]>(
+    "/donations/"
+  );
 
-export async function getDonations(
-  tenantId: number
-): Promise<Donation[]> {
+  return response.data;
+}
 
-  const response = await api.get<Donation[]>(
-    "/donations/",
-    {
-      params: {
-        tenant_id: tenantId,
-      },
-    }
+export async function cancelDonation(
+  donationId: number
+): Promise<DonationResponse> {
+  const response = await api.patch<DonationResponse>(
+    `/donations/${donationId}/cancel`
   );
 
   return response.data;
