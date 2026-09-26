@@ -639,7 +639,7 @@ function Transactions() {
                       Quantity
                     </th>
                     <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      Donation / Note
+                      Note
                     </th>
                     <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Date
@@ -713,11 +713,7 @@ function Transactions() {
                           >
                             {type}
                           </span>
-                          {type === "DONATION" && donation?.donation_status && (
-                            <p className="mt-2 text-[10px] font-semibold uppercase text-emerald-600">
-                              {donation.donation_status}
-                            </p>
-                          )}
+                          
                         </td>
 
                         <td className="px-5 py-4 align-top">
@@ -743,16 +739,8 @@ function Transactions() {
                                   Pickup: {donation.pickup_location}
                                 </p>
                               )}
-                              {donation.available_until && (
-                                <p className="mt-1 text-[11px] text-slate-400">
-                                  Available until {formatDateTime(donation.available_until)}
-                                </p>
-                              )}
-                              {(donation.note || firstTransaction.note) && (
-                                <p className="mt-1 line-clamp-2 text-[11px] text-slate-500">
-                                  {donation.note || firstTransaction.note}
-                                </p>
-                              )}
+                              
+                    
                             </>
                           ) : (
                             <p className="line-clamp-2 text-xs text-slate-600">

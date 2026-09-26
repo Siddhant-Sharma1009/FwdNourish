@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
 import NotificationBell from "../common/NotificationBell";
@@ -13,13 +14,13 @@ export default function Navbar({
   setMobileMenuOpen,
 }: NavbarProps) {
   const { user, logout } = useAuth();
-
+  const navigate = useNavigate();
   const title =
     user?.role === "ADMIN"
       ? "Platform Administration"
       : user?.role === "NGO"
-      ? "NGO Workspace"
-      : "Inventory Management";
+        ? "NGO Workspace"
+        : "Inventory Management";
 
   // Dynamic User Initials
   const userInitials =
@@ -84,7 +85,10 @@ export default function Navbar({
         <NotificationBell />
 
         {/* User Status Card */}
-        <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-800/40 py-1.5 pl-2 pr-3">
+        <div
+          onClick={() => navigate("/profile")}
+          className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-800/40 py-1.5 pl-2 pr-3 transition-colors hover:border-green-700 hover:bg-slate-800/70"
+        >
           <div className="hidden sm:block">
             <p className="text-xs font-semibold leading-none text-slate-200">
               {user?.full_name || "User"}

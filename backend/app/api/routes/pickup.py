@@ -29,13 +29,7 @@ router = APIRouter(
 # ============================================================
 
 def normalize_datetime(value):
-    """
-    Convert timezone-aware datetimes to naive UTC datetimes.
-
-    PostgreSQL DateTime fields in this project are stored as
-    timezone-naive values, while the frontend sends ISO strings
-    containing timezone information.
-    """
+   
 
     if value is None:
         return None
@@ -56,10 +50,7 @@ def get_business_user(
     db: Session,
     tenant_id: int,
 ) -> User | None:
-    """
-    Find the active business/tenant user associated
-    with the given tenant.
-    """
+    
 
     return (
         db.query(User)
@@ -75,9 +66,7 @@ def get_ngo_user(
     db: Session,
     ngo_id: int,
 ) -> User | None:
-    """
-    Find the user associated with an NGO profile.
-    """
+   
 
     ngo = (
         db.query(NGO)
@@ -154,6 +143,17 @@ def serialize_pickup(db: Session, pickup: Pickup) -> dict:
         "donation_id": pickup.donation_id,
         "match_id": pickup.match_id,
         "ngo_id": pickup.ngo_id,
+
+        # Donation quantity / sustainability data
+        "donation_quantity": (
+            donation.quantity if donation else None
+        ),
+        "committed_quantity": (
+            donation.committed_quantity if donation else None
+        ),
+        "donation_unit": (
+            donation.unit if donation else None
+        ),
         "scheduled_start": pickup.scheduled_start,
         "scheduled_end": pickup.scheduled_end,
         "pickup_location": pickup.pickup_location,

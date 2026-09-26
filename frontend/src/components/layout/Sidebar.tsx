@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 interface SidebarProps {
@@ -7,7 +7,10 @@ interface SidebarProps {
   setMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-// Icons
+// ============================================================
+// ICONS
+// ============================================================
+
 function LeafIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg
@@ -31,7 +34,11 @@ function LeafIcon({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
-function ChevronDownIcon({ className = "h-4 w-4" }: { className?: string }) {
+function ChevronDownIcon({
+  className = "h-4 w-4",
+}: {
+  className?: string;
+}) {
   return (
     <svg
       className={className}
@@ -48,6 +55,10 @@ function ChevronDownIcon({ className = "h-4 w-4" }: { className?: string }) {
     </svg>
   );
 }
+
+// ============================================================
+// MENU ICONS
+// ============================================================
 
 const itemIcons: Record<string, React.ReactNode> = {
   Dashboard: (
@@ -264,6 +275,10 @@ const itemIcons: Record<string, React.ReactNode> = {
   ),
 };
 
+// ============================================================
+// MENU TYPES
+// ============================================================
+
 interface SubMenuItem {
   name: string;
   path: string;
@@ -275,43 +290,98 @@ interface MenuItem {
   children?: SubMenuItem[];
 }
 
+// ============================================================
+// MENU CONFIG
+// ============================================================
+
 const addInventorySubMenu: SubMenuItem[] = [
-  { name: "Manual", path: "/inventory/add" },
-  { name: "CSV Upload", path: "/csv-upload" },
-  { name: "Scanner", path: "/scanner" },
+  {
+    name: "Manual",
+    path: "/inventory/add",
+  },
+  {
+    name: "CSV Upload",
+    path: "/csv-upload",
+  },
+  {
+    name: "Scanner",
+    path: "/scanner",
+  },
 ];
 
 const tenantMenuItems: MenuItem[] = [
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Point Of Sale", path: "/pos" },
-  { name: "Inventory", path: "/inventory" },
-  { name: "Add Inventory", children: addInventorySubMenu },
-  { name: "Expiry Alerts", path: "/expiry-alerts" },
-
-  // Donations opens the Surplus Food Listing Portal.
-  // The old standalone /donations page is no longer used from navigation.
-  { name: "Donations", path: "/surplus" },
-
-  { name: "AI Prediction", path: "/ai-forecasting" },
-
-  { name: "Transactions", path: "/transactions" },
+  {
+    name: "Dashboard",
+    path: "/dashboard",
+  },
+  {
+    name: "Point Of Sale",
+    path: "/pos",
+  },
+  {
+    name: "Inventory",
+    path: "/inventory",
+  },
+  {
+    name: "Add Inventory",
+    children: addInventorySubMenu,
+  },
+  {
+    name: "Expiry Alerts",
+    path: "/expiry-alerts",
+  },
+  {
+    name: "Donations",
+    path: "/surplus",
+  },
+  {
+    name: "AI Prediction",
+    path: "/ai-forecasting",
+  },
+  {
+    name: "Transactions",
+    path: "/transactions",
+  },
 ];
 
 const roleMenuItems: Record<string, MenuItem[]> = {
-  ADMIN: [{ name: "Admin Dashboard", path: "/admin" }],
+  ADMIN: [
+    {
+      name: "Admin Dashboard",
+      path: "/admin",
+    },
+  ],
+
   NGO: [
-    { name: "NGO Dashboard", path: "/ngo" },
-    { name: "Requirements", path: "/ngo/requirements" },
-    { name: "Matches", path: "/ngo/matches" },
+    {
+      name: "NGO Dashboard",
+      path: "/ngo",
+    },
+    {
+      name: "Requirements",
+      path: "/ngo/requirements",
+    },
+    {
+      name: "Matches",
+      path: "/ngo/matches",
+    },
   ],
 };
+
+// ============================================================
+// SIDEBAR
+// ============================================================
 
 export default function Sidebar({
   mobileMenuOpen,
   setMobileMenuOpen,
 }: SidebarProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const isAddInventoryActive = addInventorySubMenu.some(
     (item) => location.pathname === item.path
@@ -325,9 +395,24 @@ export default function Sidebar({
       ? tenantMenuItems
       : roleMenuItems[user?.role || "NGO"] || [];
 
+  // ============================================================
+  // CLOSE PROFILE MENU WHEN ROUTE CHANGES
+  // ============================================================
+
+  React.useEffect(() => {
+    setProfileMenuOpen(false);
+  }, [location.pathname]);
+
+  // ============================================================
+  // CONTENT
+  // ============================================================
+
   const renderContent = (closeMobile?: () => void) => (
     <div className="flex h-full flex-col justify-between">
-      {/* Brand & Nav */}
+      {/* ======================================================
+          TOP CONTENT
+      ====================================================== */}
+
       <div className="flex-1 overflow-y-auto px-4 py-5">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between px-2">
@@ -341,7 +426,7 @@ export default function Sidebar({
                 FwdNourish<span className="text-emerald-400">.</span>
               </h1>
 
-              <p className="text-[10px] font-medium tracking-wider uppercase text-slate-400">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
                 Waste Management
               </p>
             </div>
@@ -349,6 +434,7 @@ export default function Sidebar({
 
           {mobileMenuOpen && (
             <button
+              type="button"
               onClick={closeMobile}
               className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white"
               aria-label="Close navigation"
@@ -358,14 +444,18 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Navigation Category Label */}
+        {/* Navigation Category */}
         <div className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">
           Main Menu
         </div>
 
-        {/* Links list */}
+        {/* Navigation */}
         <nav className="space-y-1.5">
           {menuItems.map((item) => {
+            // ==================================================
+            // SUBMENU
+            // ==================================================
+
             if (item.children) {
               const active = isAddInventoryActive;
 
@@ -373,11 +463,14 @@ export default function Sidebar({
                 <div key={item.name} className="space-y-1">
                   <button
                     type="button"
-                    onClick={() => setAddInventoryOpen((prev) => !prev)}
-                    className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${active
-                      ? "bg-slate-800/80 text-emerald-400"
-                      : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
-                      }`}
+                    onClick={() =>
+                      setAddInventoryOpen((prev) => !prev)
+                    }
+                    className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
+                      active
+                        ? "bg-slate-800/80 text-emerald-400"
+                        : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <span
@@ -394,14 +487,15 @@ export default function Sidebar({
                     </div>
 
                     <ChevronDownIcon
-                      className={`h-4 w-4 transition-transform duration-200 ${addInventoryOpen
-                        ? "rotate-180 text-emerald-400"
-                        : "text-slate-500"
-                        }`}
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        addInventoryOpen
+                          ? "rotate-180 text-emerald-400"
+                          : "text-slate-500"
+                      }`}
                     />
                   </button>
 
-                  {/* Submenu Drawer */}
+                  {/* Submenu */}
                   {addInventoryOpen && (
                     <div className="ml-4 space-y-1 border-l-2 border-slate-800 pl-3 pt-1">
                       {item.children.map((sub) => (
@@ -410,9 +504,10 @@ export default function Sidebar({
                           to={sub.path}
                           onClick={closeMobile}
                           className={({ isActive }) =>
-                            `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${isActive
-                              ? "bg-emerald-500/10 font-semibold text-emerald-400"
-                              : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
+                            `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
+                              isActive
+                                ? "bg-emerald-500/10 font-semibold text-emerald-400"
+                                : "text-slate-400 hover:bg-slate-800/40 hover:text-slate-200"
                             }`
                           }
                         >
@@ -429,6 +524,10 @@ export default function Sidebar({
               );
             }
 
+            // ==================================================
+            // NORMAL MENU ITEM
+            // ==================================================
+
             return (
               <NavLink
                 key={item.path}
@@ -440,9 +539,10 @@ export default function Sidebar({
                 }
                 onClick={closeMobile}
                 className={({ isActive }) =>
-                  `group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${isActive
-                    ? "bg-gradient-to-r from-emerald-600 to-teal-600 font-semibold text-white shadow-md shadow-emerald-900/30"
-                    : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                  `group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-gradient-to-r from-emerald-600 to-teal-600 font-semibold text-white shadow-md shadow-emerald-900/30"
+                      : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
                   }`
                 }
               >
@@ -467,43 +567,194 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {/* User Profile Badge at bottom */}
+      {/* ======================================================
+          USER PROFILE SECTION
+      ====================================================== */}
+
       {user && (
-        <div className="border-t border-slate-800/80 p-4">
-          <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-800/40 p-2.5 backdrop-blur-sm">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/20 text-sm font-bold text-emerald-400">
+        <div className="relative border-t border-slate-800/80 p-4">
+          {/* ==================================================
+              PROFILE DROPDOWN
+          ================================================== */}
+
+          {profileMenuOpen && (
+            <div className="absolute bottom-[76px] left-4 right-4 z-50 overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-2xl">
+              {/* Profile */}
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+
+                  navigate("/profile");
+
+                  if (mobileMenuOpen) {
+                    setMobileMenuOpen(false);
+                  }
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-700"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.8}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.118a7.5 7.5 0 0115 0A17.933 17.933 0 0112 22.5a17.933 17.933 0 01-7.5-2.382z"
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-slate-200">
+                    Profile
+                  </p>
+
+                  <p className="text-xs text-slate-400">
+                    View & edit profile
+                  </p>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="border-t border-slate-700" />
+
+              {/* Logout */}
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+
+                  logout();
+
+                  if (mobileMenuOpen) {
+                    setMobileMenuOpen(false);
+                  }
+
+                  navigate("/login", {
+                    replace: true,
+                  });
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-red-500/10"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.8}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15"
+                    />
+
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M18 12H9m9 0l-3-3m3 3l-3 3"
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-red-400">
+                    Logout
+                  </p>
+
+                  <p className="text-xs text-red-400/60">
+                    Sign out of your account
+                  </p>
+                </div>
+              </button>
+            </div>
+          )}
+
+          {/* ==================================================
+              PROFILE BADGE
+          ================================================== */}
+
+          <button
+            type="button"
+            onClick={() =>
+              setProfileMenuOpen((prev) => !prev)
+            }
+            className={`flex w-full items-center gap-3 rounded-xl border p-2.5 text-left backdrop-blur-sm transition-all ${
+              profileMenuOpen
+                ? "border-emerald-500/40 bg-slate-800"
+                : "border-slate-800 bg-slate-800/40 hover:border-slate-700 hover:bg-slate-800/70"
+            }`}
+          >
+            {/* Avatar */}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/20 text-sm font-bold text-emerald-400">
               {user.full_name
                 ? user.full_name.charAt(0).toUpperCase()
                 : "U"}
             </div>
 
+            {/* User Information */}
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-semibold text-slate-200">
                 {user.full_name || "Active User"}
               </p>
 
               <p className="truncate text-[10px] font-medium uppercase tracking-wide text-slate-400">
-                {user?.role === "ADMIN"
+                {user.role === "ADMIN"
                   ? "Platform Administration"
-                  : user?.role === "NGO"
+                  : user.role === "NGO"
                     ? "NGO Owner"
                     : "Business Owner"}
               </p>
             </div>
-          </div>
+
+            {/* Chevron */}
+            <svg
+              className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${
+                profileMenuOpen
+                  ? "rotate-180 text-emerald-400"
+                  : ""
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
         </div>
       )}
     </div>
   );
 
+  // ============================================================
+  // DESKTOP + MOBILE
+  // ============================================================
+
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* ======================================================
+          DESKTOP SIDEBAR
+      ====================================================== */}
+
       <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-800 bg-slate-900 shadow-xl md:flex">
         {renderContent()}
       </aside>
 
-      {/* Mobile Drawer Backdrop */}
+      {/* ======================================================
+          MOBILE BACKDROP
+      ====================================================== */}
+
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm transition-opacity md:hidden"
@@ -511,10 +762,16 @@ export default function Sidebar({
         />
       )}
 
-      {/* Mobile Sidebar */}
+      {/* ======================================================
+          MOBILE SIDEBAR
+      ====================================================== */}
+
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-slate-900 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-slate-900 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+          mobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+        }`}
       >
         {renderContent(() => setMobileMenuOpen(false))}
       </aside>
