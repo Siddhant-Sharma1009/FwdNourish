@@ -66,16 +66,7 @@ export interface DonationCreateRequest {
   available_until: string;
 
   note?: string;
-
-  /**
-   * Manual NGO selection.
-   * Optional because AI mode may be used.
-   */
   ngo_id?: number;
-
-  /**
-   * If AI mode is used, selected AI match.
-   */
   match_id?: number;
 }
 

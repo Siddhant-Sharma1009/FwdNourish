@@ -65,7 +65,6 @@ function ExpiryAlerts() {
     });
   }, [alerts, search, statusFilter, sortBy]);
 
-
   // ================= SUMMARY =================
 
   const expiredCount = alerts.filter(
@@ -82,243 +81,234 @@ function ExpiryAlerts() {
     (item) => item.days_remaining > 3
   ).length;
 
-
   // ================= LOADING =================
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 p-4 sm:p-6">
-        <div className="mx-auto w-full max-w-6xl">
-
-          <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
-
+      <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div className="text-center">
-
               <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-600" />
 
               <p className="mt-3 text-sm font-medium text-slate-600">
                 Loading expiry alerts...
               </p>
-
             </div>
-
           </div>
         </div>
       </div>
     );
   }
 
-
   return (
-    <div className="min-h-screen bg-slate-100 p-4 sm:p-6">
+    <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-7xl space-y-6">
 
-      <div className="mx-auto w-full max-w-6xl">
+        {/* ================= PAGE HEADER ================= */}
 
-        {/* ================= HEADER ================= */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/70 px-5 py-5 sm:px-7">
+            <div className="flex items-start gap-4">
+              
+              <div>
+                <h1 className="text-base font-bold text-slate-900">
+                  Expiry Alerts
+                </h1>
 
-        <div className="mb-6">
-
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Expiry Alerts
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Monitor inventory items that require attention.
-          </p>
-
+                <p className="mt-1 text-sm text-slate-500">
+                  Monitor inventory items that require attention before expiry.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* ================= SUMMARY ================= */}
 
-        {/* ================= SUMMARY CARDS ================= */}
-
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 
           {/* Expired */}
-          <div className="rounded-2xl border border-rose-200 bg-white p-5 shadow-sm">
-
-            <div className="flex items-start justify-between">
-
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div>
-
-                <p className="text-xs font-semibold uppercase tracking-wider text-rose-600">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Expired
                 </p>
 
-                <p className="mt-2 text-3xl font-bold text-rose-700">
+                <p className="mt-2 text-2xl font-bold text-slate-900">
                   {expiredCount}
                 </p>
 
                 <p className="mt-1 text-xs text-slate-500">
                   Items already expired
                 </p>
-
               </div>
 
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-lg text-rose-600">
-                !
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="h-5 w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 8v5m0 3h.01M10.3 3.8 2.9 17a2 2 0 0 0 1.75 3h14.7a2 2 0 0 0 1.75-3L13.7 3.8a2 2 0 0 0-3.4 0Z"
+                  />
+                </svg>
               </div>
-
             </div>
-
           </div>
 
-
           {/* Critical */}
-          <div className="rounded-2xl border border-orange-200 bg-white p-5 shadow-sm">
-
-            <div className="flex items-start justify-between">
-
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div>
-
-                <p className="text-xs font-semibold uppercase tracking-wider text-orange-600">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Critical
                 </p>
 
-                <p className="mt-2 text-3xl font-bold text-orange-700">
+                <p className="mt-2 text-2xl font-bold text-slate-900">
                   {criticalCount}
                 </p>
 
                 <p className="mt-1 text-xs text-slate-500">
                   Expiring within 3 days
                 </p>
-
               </div>
 
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50 text-lg text-orange-600">
-                ⚠
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="h-5 w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 8v4m0 4h.01M10.3 3.8 2.9 17a2 2 0 0 0 1.75 3h14.7a2 2 0 0 0 1.75-3L13.7 3.8a2 2 0 0 0-3.4 0Z"
+                  />
+                </svg>
               </div>
-
             </div>
-
           </div>
 
-
           {/* Warning */}
-          <div className="rounded-2xl border border-amber-200 bg-white p-5 shadow-sm">
-
-            <div className="flex items-start justify-between">
-
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between">
               <div>
-
-                <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   Warning
                 </p>
 
-                <p className="mt-2 text-3xl font-bold text-amber-700">
+                <p className="mt-2 text-2xl font-bold text-slate-900">
                   {warningCount}
                 </p>
 
                 <p className="mt-1 text-xs text-slate-500">
                   Items approaching expiry
                 </p>
-
               </div>
 
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-lg text-amber-600">
-                ⏱
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="h-5 w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                  />
+                </svg>
               </div>
-
             </div>
-
           </div>
-
         </div>
 
+        {/* ================= FILTERS ================= */}
 
-        {/* ================= FILTER CARD ================= */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
 
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-         
-
-
-          <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
+          <div className="grid gap-4 p-5 md:grid-cols-3">
 
             {/* Search */}
-            <div className="md:col-span-1">
-
-              <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-slate-600">
                 Search
               </label>
 
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search name or SKU..."
-                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-              />
+              <div className="relative">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path
+                    strokeLinecap="round"
+                    d="m16.5 16.5 4 4"
+                  />
+                </svg>
 
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search name or SKU..."
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50"
+                />
+              </div>
             </div>
-
 
             {/* Status */}
             <div>
-
-              <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-600">
                 Status
               </label>
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 text-sm text-slate-800 outline-none transition-all hover:border-slate-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50"
               >
-                <option value="ALL">
-                  All statuses
-                </option>
-
-                <option value="EXPIRED">
-                  Expired
-                </option>
-
-                <option value="CRITICAL">
-                  Critical
-                </option>
-
-                <option value="WARNING">
-                  Warning
-                </option>
+                <option value="ALL">All statuses</option>
+                <option value="EXPIRED">Expired</option>
+                <option value="CRITICAL">Critical</option>
+                <option value="WARNING">Warning</option>
               </select>
-
             </div>
-
 
             {/* Sort */}
             <div>
-
-              <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+              <label className="mb-1.5 block text-xs font-semibold text-slate-600">
                 Sort By
               </label>
 
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 text-sm text-slate-800 outline-none transition-all hover:border-slate-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50"
               >
-                <option value="URGENT">
-                  Most Urgent
-                </option>
-
-                <option value="LATEST">
-                  Furthest Expiry
-                </option>
-
-                <option value="QUANTITY">
-                  Highest Quantity
-                </option>
+                <option value="URGENT">Already Expired</option>
+                <option value="LATEST">Furthest Expiry</option>
+                <option value="QUANTITY">Highest Quantity</option>
               </select>
-
             </div>
-
           </div>
 
-
-          {/* Filter Footer */}
-          <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-
+          <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-slate-500">
-
               Showing{" "}
               <span className="font-semibold text-slate-700">
                 {filteredAlerts.length}
@@ -328,9 +318,7 @@ function ExpiryAlerts() {
                 {alerts.length}
               </span>{" "}
               alerts
-
             </p>
-
 
             {(search || statusFilter !== "ALL") && (
               <button
@@ -339,191 +327,350 @@ function ExpiryAlerts() {
                   setSearch("");
                   setStatusFilter("ALL");
                 }}
-                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                className="w-fit rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900"
               >
                 Clear filters
               </button>
             )}
-
           </div>
-
         </div>
-
 
         {/* ================= ALERT LIST ================= */}
 
         {alerts.length === 0 ? (
 
           /* No Alerts */
-          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+            <div className="px-6 py-14 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="h-7 w-7"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m5 12 4 4L19 6"
+                  />
+                </svg>
+              </div>
 
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-2xl font-bold text-emerald-600">
-              ✓
+              <h2 className="mt-4 text-base font-bold text-slate-900">
+                No expiry alerts
+              </h2>
+
+              <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+                Your inventory currently has no items requiring expiry
+                attention.
+              </p>
             </div>
-
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">
-              No expiry alerts
-            </h2>
-
-            <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-              Your inventory currently has no items requiring expiry attention.
-            </p>
-
           </div>
 
         ) : filteredAlerts.length === 0 ? (
 
           /* No Filter Results */
-          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+            <div className="px-6 py-14 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="h-6 w-6"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path
+                    strokeLinecap="round"
+                    d="m16.5 16.5 4 4"
+                  />
+                </svg>
+              </div>
 
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-500">
-              🔍
+              <h2 className="mt-4 text-base font-bold text-slate-900">
+                No matching alerts
+              </h2>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Try changing your search or status filter.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter("ALL");
+                }}
+                className="mt-5 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Clear Filters
+              </button>
             </div>
-
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">
-              No matching alerts
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Try changing your search or status filter.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => {
-                setSearch("");
-                setStatusFilter("ALL");
-              }}
-              className="mt-4 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
-            >
-              Clear Filters
-            </button>
-
           </div>
 
         ) : (
 
-          <div className="space-y-3">
+          <>
+            {/* ================= DESKTOP TABLE ================= */}
 
-            {filteredAlerts.map((item) => {
+            <div className="hidden overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm md:block">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="border-b border-slate-200 bg-slate-50">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        SKU
+                      </th>
 
-              const isExpired = item.days_remaining < 0;
-              const isCritical =
-                item.days_remaining >= 0 &&
-                item.days_remaining <= 3;
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Product
+                      </th>
 
-              return (
-                <div
-                  key={item.inventory_id}
-                  className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:shadow-md ${
-                    isExpired
-                      ? "border-rose-200"
-                      : isCritical
-                        ? "border-orange-200"
-                        : "border-slate-200"
-                  }`}
-                >
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Quantity
+                      </th>
 
-                  <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Expiry
+                      </th>
 
-                    {/* Product Information */}
-                    <div className="min-w-0">
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Status
+                      </th>
 
-                      <div className="flex flex-wrap items-center gap-2">
+                      <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Remaining
+                      </th>
+                    </tr>
+                  </thead>
 
-                        <h3 className="truncate text-base font-bold text-slate-900">
-                          {item.name}
-                        </h3>
+                  <tbody>
+                    {filteredAlerts.map((item) => {
+                      const isExpired = item.days_remaining < 0;
+                      const isCritical =
+                        item.days_remaining >= 0 &&
+                        item.days_remaining <= 3;
+
+                      return (
+                        <tr
+                          key={item.inventory_id}
+                          className="border-b border-slate-100 last:border-b-0 transition hover:bg-slate-50/70"
+                        >
+                          {/* SKU */}
+                          <td className="px-6 py-4">
+                            <span className="rounded-md bg-slate-100 px-2 py-1 font-mono text-xs font-medium text-slate-700">
+                              {item.sku}
+                            </span>
+                          </td>
+
+                          {/* Product */}
+                          <td className="px-6 py-4">
+                            <p className="font-medium text-slate-800">
+                              {item.name}
+                            </p>
+
+                            <p className="mt-1 text-xs text-slate-400">
+                              Inventory ID: {item.inventory_id}
+                            </p>
+                          </td>
+
+                          {/* Quantity */}
+                          <td className="px-6 py-4">
+                            <p className="font-semibold text-slate-800">
+                              {item.quantity}
+                            </p>
+
+                            <p className="text-xs text-slate-400">
+                              {item.unit}
+                            </p>
+                          </td>
+
+                          {/* Expiry */}
+                          <td className="px-6 py-4">
+                            <p className="text-sm text-slate-700">
+                              {item.expiry_date}
+                            </p>
+
+                            <p className="mt-1 text-xs text-slate-500">
+                              {isExpired
+                                ? `${Math.abs(
+                                    item.days_remaining
+                                  )} days overdue`
+                                : `${item.days_remaining} days remaining`}
+                            </p>
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-6 py-4">
+                            <ExpiryBadge status={item.status} />
+                          </td>
+
+                          {/* Remaining */}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`h-9 w-1 rounded-full ${
+                                  isExpired
+                                    ? "bg-rose-500"
+                                    : isCritical
+                                      ? "bg-orange-500"
+                                      : "bg-amber-500"
+                                }`}
+                              />
+
+                              <div>
+                                <p
+                                  className={`text-sm font-bold ${
+                                    isExpired
+                                      ? "text-rose-700"
+                                      : isCritical
+                                        ? "text-orange-700"
+                                        : "text-amber-700"
+                                  }`}
+                                >
+                                  {isExpired
+                                    ? "Expired"
+                                    : `${item.days_remaining} days`}
+                                </p>
+
+                                <p className="text-xs text-slate-400">
+                                  {isExpired
+                                    ? "Action required"
+                                    : "remaining"}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* ================= MOBILE LIST ================= */}
+
+            <div className="space-y-3 md:hidden">
+              {filteredAlerts.map((item) => {
+                const isExpired = item.days_remaining < 0;
+                const isCritical =
+                  item.days_remaining >= 0 &&
+                  item.days_remaining <= 3;
+
+                return (
+                  <div
+                    key={item.inventory_id}
+                    className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm"
+                  >
+                    <div className="p-4 sm:p-5">
+
+                      {/* Product Header */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="truncate font-semibold text-slate-800">
+                            {item.name}
+                          </h3>
+
+                          <p className="mt-1 font-mono text-xs text-slate-500">
+                            {item.sku}
+                          </p>
+                        </div>
 
                         <ExpiryBadge status={item.status} />
-
                       </div>
 
-                      <p className="mt-1 font-mono text-xs text-slate-500">
-                        SKU: {item.sku}
-                      </p>
-
-                      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-600">
+                      {/* Information */}
+                      <div className="mt-5 grid grid-cols-2 gap-4">
 
                         <div>
-                          <span className="text-slate-400">
-                            Expiry:
-                          </span>{" "}
-                          <span className="font-medium">
-                            {item.expiry_date}
-                          </span>
-                        </div>
+                          <p className="text-xs text-slate-400">
+                            Quantity
+                          </p>
 
-                        <div>
-                          <span className="text-slate-400">
-                            Quantity:
-                          </span>{" "}
-                          <span className="font-medium">
+                          <p className="mt-1 text-sm font-semibold text-slate-800">
                             {item.quantity} {item.unit}
-                          </span>
+                          </p>
                         </div>
 
+                        <div>
+                          <p className="text-xs text-slate-400">
+                            Status
+                          </p>
+
+                          <p
+                            className={`mt-1 text-sm font-semibold ${
+                              isExpired
+                                ? "text-rose-700"
+                                : isCritical
+                                  ? "text-orange-700"
+                                  : "text-amber-700"
+                            }`}
+                          >
+                            {isExpired
+                              ? "Expired"
+                              : item.status}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs text-slate-400">
+                            Expiry
+                          </p>
+
+                          <p className="mt-1 text-sm font-medium text-slate-700">
+                            {item.expiry_date}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs text-slate-400">
+                            Remaining
+                          </p>
+
+                          <p
+                            className={`mt-1 text-sm font-semibold ${
+                              isExpired
+                                ? "text-rose-700"
+                                : isCritical
+                                  ? "text-orange-700"
+                                  : "text-amber-700"
+                            }`}
+                          >
+                            {isExpired
+                              ? `${Math.abs(
+                                  item.days_remaining
+                                )} days overdue`
+                              : `${item.days_remaining} days`}
+                          </p>
+                        </div>
                       </div>
 
-                    </div>
+                      {/* Bottom Information */}
+                      <div className="mt-4 border-t border-slate-100 pt-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-slate-400">
+                            Inventory ID
+                          </p>
 
-
-                    {/* Right Side */}
-                    <div className="flex items-center justify-between gap-5 border-t border-slate-100 pt-4 lg:border-t-0 lg:pt-0">
-
-                      <div className="text-left lg:text-right">
-
-                        <p
-                          className={`text-lg font-bold ${
-                            isExpired
-                              ? "text-rose-700"
-                              : isCritical
-                                ? "text-orange-700"
-                                : "text-amber-700"
-                          }`}
-                        >
-                          {isExpired
-                            ? "Expired"
-                            : `${item.days_remaining} days`}
-                        </p>
-
-                        <p className="mt-0.5 text-[11px] text-slate-400">
-                          {isExpired
-                            ? `${Math.abs(item.days_remaining)} days overdue`
-                            : "remaining"}
-                        </p>
-
+                          <p className="font-mono text-xs text-slate-600">
+                            #{item.inventory_id}
+                          </p>
+                        </div>
                       </div>
-
-
-                      {/* Status Indicator */}
-                      <div
-                        className={`h-10 w-1 rounded-full ${
-                          isExpired
-                            ? "bg-rose-500"
-                            : isCritical
-                              ? "bg-orange-500"
-                              : "bg-amber-500"
-                        }`}
-                      />
-
                     </div>
-
                   </div>
-
-                </div>
-              );
-            })}
-
-          </div>
-
+                );
+              })}
+            </div>
+          </>
         )}
-
       </div>
-
     </div>
   );
 }
 
 export default ExpiryAlerts;
-

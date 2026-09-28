@@ -9,10 +9,7 @@ import type { DonationResponse } from "../types/donation";
 import { getInventory } from "../services/inventoryApi";
 import { getTransactions } from "../services/transactionApi";
 import { getMyDonations } from "../services/donationApi";
-import {
-  getBusinessPickups,
-  type Pickup,
-} from "../services/pickupApi";
+import { getBusinessPickups, type Pickup,} from "../services/pickupApi";
 import type { AIPrediction } from "../services/aiPredictionApi";
 import { getAIPredictions } from "../services/aiPredictionApi";
 import { calculateSustainabilityImpact } from "../utils/sustainabilityImpact";
@@ -20,7 +17,6 @@ import { calculateSustainabilityImpact } from "../utils/sustainabilityImpact";
 function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-
   const [inventory, setInventory] = useState<Inventory[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [aiPredictions, setAIPredictions] = useState<AIPrediction[]>([]);
@@ -118,7 +114,7 @@ function Dashboard() {
 
     const averageRiskScore = aiPredictions.length
       ? aiPredictions.reduce((sum, p) => sum + Number(p.risk_score || 0), 0) /
-        aiPredictions.length
+      aiPredictions.length
       : 0;
 
     const recommendedPurchase = aiPredictions.reduce(
@@ -418,8 +414,14 @@ function Dashboard() {
             ))}
           </div>
 
-          <div className="flex items-center justify-center ">
-            <DonutChart segments={healthSegments} centerLabel="Total Items" centerValue={inventoryHealth.totalItems.toLocaleString()} />
+          <div className="flex min-w-0 items-center justify-center overflow-hidden">
+            <div className="max-w-full">
+              <DonutChart
+                segments={healthSegments}
+                centerLabel="Total Items"
+                centerValue={inventoryHealth.totalItems.toLocaleString()}
+              />
+            </div>
           </div>
 
           <div className="rounded-xl bg-slate-50 p-4 ">
@@ -447,8 +449,15 @@ function Dashboard() {
 
         <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_220px]">
           <BarChart segments={riskSegments} maxValue={riskTotal} onBarClick={(seg) => navigate(seg.to!)} />
-          <div className="flex items-center justify-center">
-            <DonutChart segments={riskSegments} centerLabel="Predictions" centerValue={aiPredictions.length.toLocaleString()} size={150} />
+          <div className="flex min-w-0 items-center justify-center overflow-hidden">
+            <div className="max-w-full">
+              <DonutChart
+                segments={riskSegments}
+                centerLabel="Predictions"
+                centerValue={aiPredictions.length.toLocaleString()}
+                size={150}
+              />
+            </div>
           </div>
         </div>
 
@@ -477,7 +486,8 @@ function Dashboard() {
           <table className="w-full min-w-[720px] text-sm">
             <thead className="bg-slate-50">
               <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                <th className="px-4 py-3">Inventory ID</th>
+                <th className="px-4 py-3">sku</th>
+                <th className="px-4 py-3">Item Name</th>
                 <th className="px-4 py-3">Demand / Day</th>
                 <th className="px-4 py-3">Risk Score</th>
                 <th className="px-4 py-3">Risk Level</th>
@@ -498,7 +508,8 @@ function Dashboard() {
                     onClick={() => navigate("/ai-forecasting")}
                     className="cursor-pointer hover:bg-slate-50/70"
                   >
-                    <td className="px-4 py-3 font-semibold text-slate-800">#{prediction.inventory_id}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-800">{prediction.sku}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-800">{prediction.product_name}</td>
                     <td className="px-4 py-3 text-slate-600">{Number(prediction.forecast_daily_demand || 0).toFixed(2)}</td>
                     <td className="px-4 py-3 font-semibold text-slate-700">{Number(prediction.risk_score || 0).toFixed(2)}</td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${riskClasses}`}>{prediction.risk_level}</span></td>
@@ -515,18 +526,85 @@ function Dashboard() {
       </section>
 
       {/* 7-day transaction activity trend */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Activity Trend</h2>
-            <p className="text-sm text-slate-500">Total inventory units moved per day over the last 7 days.</p>
+      
+      <section className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
+        {/* Header */}
+        <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                className="h-5 w-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 3v18h18"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 16l4-5 3 3 5-7"
+                />
+              </svg>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold tracking-tight text-slate-900 sm:text-lg">
+                  Activity Trend
+                </h2>
+
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  7 Days
+                </span>
+              </div>
+
+              <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">
+                Total inventory units moved per day over the last 7 days.
+              </p>
+            </div>
           </div>
-          <Link to="/transactions" className="text-xs font-semibold text-emerald-600 hover:underline">View all transactions</Link>
+
+          <Link
+            to="/transactions"
+            className="inline-flex w-fit items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-emerald-600 transition-all duration-200 hover:bg-emerald-50 hover:text-emerald-700"
+          >
+            View transactions
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 10h12M11 5l5 5-5 5"
+              />
+            </svg>
+          </Link>
         </div>
-        <div className="mt-5">
-          <TrendChart data={transactionTrend} onClick={() => navigate("/transactions")} />
+
+        {/* Chart */}
+        <div className="px-3 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
+          <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3 sm:p-4">
+            <div className="min-w-0 overflow-hidden">
+              <TrendChart
+                data={transactionTrend}
+                onClick={() => navigate("/transactions")}
+              />
+            </div>
+          </div>
         </div>
       </section>
+
+
 
       {/* Donation Tracker: mini stats + donut + recent lists */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -576,7 +654,7 @@ function Dashboard() {
                   className="flex w-full items-center justify-between gap-4 p-4 text-left transition hover:bg-slate-50"
                 >
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-800">Donation #{donation.id}</p>
+                    <p className="font-semibold text-slate-800">Donation {donation.id}</p>
                     <p className="text-xs text-slate-500">{Number(donation.quantity || 0).toLocaleString()} units • {donation.pickup_location || "Location not specified"}</p>
                   </div>
                   <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">{donation.donation_status}</span>
@@ -598,7 +676,7 @@ function Dashboard() {
                   className="flex w-full items-center justify-between gap-4 p-4 text-left transition hover:bg-slate-50"
                 >
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-800">Pickup #{pickup.id}</p>
+                    <p className="font-semibold text-slate-800">Pickup {pickup.id}</p>
                     <p className="truncate text-xs text-slate-500">{pickup.ngo_organization_name || "NGO"} • {pickup.pickup_location || "Location not specified"}</p>
                   </div>
                   <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">{pickup.status}</span>
@@ -664,7 +742,7 @@ function Dashboard() {
             <p className="p-8 text-center text-sm text-slate-500">No transactions recorded yet.</p>
           ) : (
             <div className="divide-y divide-slate-100">
-              {transactions.slice(0, 5).map((transaction) => (
+              {transactions.slice(0, 4).map((transaction) => (
                 <button
                   type="button"
                   key={transaction.id}
@@ -694,7 +772,7 @@ function Dashboard() {
             <Link to="/expiry-alerts" className="text-xs font-semibold text-emerald-600 hover:underline">View alerts</Link>
           </div>
           <div className="space-y-3 p-4">
-            {[...inventoryHealth.expired, ...inventoryHealth.expiringSoon].slice(0, 5).map((item) => {
+            {[...inventoryHealth.expired, ...inventoryHealth.expiringSoon].slice(0, 4).map((item) => {
               const expired = inventoryHealth.expired.some((entry) => entry.id === item.id);
               return (
                 <button

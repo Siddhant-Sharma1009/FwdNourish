@@ -116,14 +116,7 @@ export default function Scanner() {
     }));
   }
 
-  /*
-   * ---------------------------------------------------------
-   * HANDLE SCAN
-   *
-   * QRBarcodeScanner.tsx calls this function whenever
-   * a barcode/QR code is successfully detected.
-   * ---------------------------------------------------------
-   */
+
   async function handleScan(code: string) {
     const scannedSku = code.trim();
 
@@ -147,11 +140,7 @@ export default function Scanner() {
           tenantId
         );
 
-      /*
-       * Item exists in inventory.
-       *
-       * Show its details in the form.
-       */
+
       setCurrentItem(inventory);
 
       setForm({
@@ -181,12 +170,7 @@ export default function Scanner() {
         `"${inventory.name}" found in inventory. Review the details and add it to the list.`
       );
     } catch (err) {
-      /*
-       * Item does not exist.
-       *
-       * IMPORTANT:
-       * Do not create a new inventory item here.
-       */
+
       console.error(err);
 
       setCurrentItem(null);
@@ -204,11 +188,7 @@ export default function Scanner() {
     }
   }
 
-  /*
-   * ---------------------------------------------------------
-   * VALIDATE FORM
-   * ---------------------------------------------------------
-   */
+
   function validateForm() {
     if (!currentItem) {
       setError(
@@ -270,11 +250,7 @@ export default function Scanner() {
     return true;
   }
 
-  /*
-   * ---------------------------------------------------------
-   * ADD CURRENT ITEM TO CART
-   * ---------------------------------------------------------
-   */
+
   function addToCart() {
     if (!validateForm() || !currentItem) {
       return;
@@ -287,10 +263,7 @@ export default function Scanner() {
             cartItem.item.id === currentItem.id
         );
 
-      /*
-       * If the same inventory item was scanned again,
-       * increase its cart quantity.
-       */
+
       if (existingIndex !== -1) {
         const updatedCart = [...previousCart];
 
@@ -299,12 +272,7 @@ export default function Scanner() {
 
         updatedCart[existingIndex] = {
           ...existing,
-          quantity:
-            existing.quantity + form.quantity,
-
-          /*
-           * Keep the latest entered batch/expiry information.
-           */
+          quantity: existing.quantity + form.quantity,
           sku: form.sku,
           name: form.name,
           category_id: form.category_id,
@@ -319,9 +287,7 @@ export default function Scanner() {
         return updatedCart;
       }
 
-      /*
-       * New cart item.
-       */
+
       return [
         ...previousCart,
         {
@@ -346,20 +312,11 @@ export default function Scanner() {
     );
 
     setError("");
-
-    /*
-     * Clear the current item so the next scan becomes
-     * the active item.
-     */
     setCurrentItem(null);
     setForm(emptyForm());
   }
 
-  /*
-   * ---------------------------------------------------------
-   * REMOVE FROM CART
-   * ---------------------------------------------------------
-   */
+
   function removeFromCart(inventoryId: number) {
     setCart((previousCart) =>
       previousCart.filter(
@@ -369,11 +326,7 @@ export default function Scanner() {
     );
   }
 
-  /*
-   * ---------------------------------------------------------
-   * UPDATE CART QUANTITY
-   * ---------------------------------------------------------
-   */
+
   function updateCartQuantity(
     inventoryId: number,
     quantity: number
@@ -387,19 +340,15 @@ export default function Scanner() {
       previousCart.map((cartItem) =>
         cartItem.item.id === inventoryId
           ? {
-              ...cartItem,
-              quantity,
-            }
+            ...cartItem,
+            quantity,
+          }
           : cartItem
       )
     );
   }
 
-  /*
-   * ---------------------------------------------------------
-   * CLEAR CART
-   * ---------------------------------------------------------
-   */
+
   function clearCart() {
     setCart([]);
     setCurrentItem(null);
@@ -408,14 +357,7 @@ export default function Scanner() {
     setError("");
   }
 
-  /*
-   * ---------------------------------------------------------
-   * ADD ALL CART ITEMS TO INVENTORY
-   *
-   * Existing inventory items are increased through
-   * PURCHASE transactions.
-   * ---------------------------------------------------------
-   */
+
   async function addAllToInventory() {
     if (cart.length === 0) {
       setError(
@@ -442,13 +384,10 @@ export default function Scanner() {
           inventory_id: cartItem.item.id,
           transaction_type: "PURCHASE",
           quantity: cartItem.quantity,
-          note: `Scanner inventory addition | Batch: ${
-            cartItem.batch_number || "N/A"
-          } | Purchase Date: ${
-            cartItem.purchase_date
-          } | Expiry Date: ${
-            cartItem.expiry_date
-          }`,
+          note: `Scanner inventory addition | Batch: ${cartItem.batch_number || "N/A"
+            } | Purchase Date: ${cartItem.purchase_date
+            } | Expiry Date: ${cartItem.expiry_date
+            }`,
         });
       }
 
@@ -464,45 +403,67 @@ export default function Scanner() {
 
       setError(
         err?.response?.data?.detail ||
-          "Failed to add items to inventory."
+        "Failed to add items to inventory."
       );
     } finally {
       setAddingToInventory(false);
     }
   }
 
-  /*
-   * ---------------------------------------------------------
-   * CALCULATED VALUES
-   * ---------------------------------------------------------
-   */
+
   const totalQuantity = cart.reduce(
     (total, cartItem) =>
       total + cartItem.quantity,
     0
   );
 
-  /*
-   * ---------------------------------------------------------
-   * RENDER
-   * ---------------------------------------------------------
-   */
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
 
         {/* PAGE HEADER */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Inventory Scanner
-          </h1>
+        {/* PAGE HEADER */}
+        <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/70 px-5 py-5 sm:px-7">
+            <div className="flex items-start gap-4">
 
-          <p className="mt-1 text-sm text-slate-500">
-            Scan products continuously, review their inventory
-            details, and add them to inventory in one operation.
-          </p>
+              {/* Scanner Icon */}
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 7.5A2.5 2.5 0 016.5 5h11A2.5 2.5 0 0120 7.5v9a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 16.5v-9z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8 9h8M8 13h8M8 17h4"
+                  />
+                </svg>
+              </div>
+
+              {/* Header Content */}
+              <div>
+                <h1 className="text-base font-bold text-slate-900">
+                  Inventory Scanner
+                </h1>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Scan products continuously, review their inventory details, and add
+                  them to inventory in one operation.
+                </p>
+              </div>
+
+            </div>
+          </div>
         </div>
-
         {/* SUCCESS MESSAGE */}
         {message && (
           <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
@@ -524,16 +485,7 @@ export default function Scanner() {
 
             {/* SCANNER */}
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 px-5 py-4">
-                <h2 className="text-sm font-bold text-slate-900">
-                  QR / Barcode Scanner
-                </h2>
 
-                <p className="mt-1 text-xs text-slate-500">
-                  Scan products continuously. The scanner is
-                  reusable across the application.
-                </p>
-              </div>
 
               <div className="p-5">
                 <QRBarcodeScanner

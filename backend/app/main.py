@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import models  # noqa: F401
+from app import models  
 from app.core.database import Base, engine
 from app.api.forecasting import router as forecasting_router
 from app.api.routes import (
@@ -24,15 +24,20 @@ from app.api.routes import (
     ngo,
 )
 from app.core.scheduler import start_scheduler, stop_scheduler
+from app.core.config import settings
 
 Base.metadata.create_all(bind=engine)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    start_scheduler()
-    yield
-    stop_scheduler()
+    if settings.ENABLE_SCHEDULER:
+        start_scheduler()
+    try:
+        yield
+    finally:
+        if settings.ENABLE_SCHEDULER:
+            stop_scheduler()
 
 
 app = FastAPI(
@@ -43,7 +48,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,6 +70,7 @@ app.include_router(donation_matches.router)
 app.include_router(pickup.router)
 app.include_router(notification.router)
 app.include_router(ngo.router)
+
 
 @app.get("/")
 def root():

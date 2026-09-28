@@ -477,14 +477,9 @@ function SurplusListings() {
     let availableUntilIso: string | undefined;
 
     if (availableUntil) {
-      const untilDate = new Date(availableUntil);
-
-      if (Number.isNaN(untilDate.getTime())) {
-        setError("Please provide a valid 'Available Until' date and time.");
-        return;
-      }
-
-      availableUntilIso = untilDate.toISOString();
+      // datetime-local already contains the user's local wall-clock value.
+      // Keep it unchanged so the AI preview receives the exact selected time.
+      availableUntilIso = availableUntil;
     }
 
     try {
@@ -730,8 +725,10 @@ function SurplusListings() {
         pickup_latitude: latitude,
         pickup_longitude: longitude,
 
-        available_from: from.toISOString(),
-        available_until: until.toISOString(),
+        // Keep the datetime-local values unchanged. Converting them with
+        // toISOString() would shift the selected time because of UTC conversion.
+        available_from: availableFrom,
+        available_until: availableUntil,
 
         note: note.trim() || undefined,
 
@@ -1435,7 +1432,90 @@ function SurplusListings() {
           {/* ==================================================
               RECIPIENT / NOTE
           =================================================== */}
+           {/* ==================================================
+              LOCATION
+          =================================================== */}
 
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+            <div className="mb-4">
+              <h3 className="text-sm font-bold text-slate-900">
+                Pickup Location
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Use your current location to fill both coordinates and a Google Maps link, or enter them manually.
+              </p>
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                disabled={locating}
+                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span>{locating ? "⌛" : "📍"}</span>
+                {locating ? "Getting current location..." : "Use Current Location"}
+              </button>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Latitude
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={location.latitude}
+                  onChange={(event) => {
+                    clearAiRecommendation();
+                    setLocation((current) => ({
+                      ...current,
+                      latitude: event.target.value,
+                    }));
+                  }}
+                  placeholder="e.g. 28.4595"
+                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Longitude
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={location.longitude}
+                  onChange={(event) => {
+                    clearAiRecommendation();
+                    setLocation((current) => ({
+                      ...current,
+                      longitude: event.target.value,
+                    }));
+                  }}
+                  placeholder="e.g. 77.0266"
+                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  required
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+                  Google Maps Pickup Link
+                </label>
+                <input
+                  type="url"
+                  value={googleMapsLink}
+                  onChange={(event) => setGoogleMapsLink(event.target.value)}
+                  placeholder="https://www.google.com/maps?q=28.4595,77.0266"
+                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  required
+                />
+                <p className="mt-1.5 text-[11px] text-slate-400">
+                  The Current Location button fills this automatically. You can also paste or edit a Google Maps link here.
+                </p>
+              </div>
+            </div>
+          </section>
 
 
 
@@ -1654,7 +1734,22 @@ function SurplusListings() {
                         <button
                           type="button"
                           onClick={() => {
-                            setSelectedNgoId(Number(aiRecommendation.ngo_id));
+                            const recommendedNgo = ngos.find(
+                              (ngo) =>
+                                Number(ngo.id) === Number(aiRecommendation.ngo_id)
+                            );
+
+                            if (!recommendedNgo) {
+                              setError(
+                                "The recommended NGO could not be found. Please generate the AI recommendation again."
+                              );
+                              return;
+                            }
+
+                            // Use the actual NGO record ID from the loaded NGO list.
+                            // This keeps the AI selection consistent with manual selection.
+                            setSelectedNgoId(recommendedNgo.id);
+                            setSelectedNgoDetails(recommendedNgo);
                             setError("");
                           }}
                           className={`rounded-lg px-3 py-1.5 text-[10px] font-bold ${selectedNgoId === Number(aiRecommendation.ngo_id)
@@ -1690,8 +1785,22 @@ function SurplusListings() {
                               key={`${match.ngo_id}-${match.requirement_id}`}
                               type="button"
                               onClick={() => {
+                                const recommendedNgo = ngos.find(
+                                  (ngo) =>
+                                    Number(ngo.id) === Number(match.ngo_id)
+                                );
+
+                                if (!recommendedNgo) {
+                                  setError(
+                                    "The selected AI-recommended NGO could not be found. Please try again."
+                                  );
+                                  return;
+                                }
+
                                 setAiRecommendation(match);
-                                setSelectedNgoId(0);
+                                setSelectedNgoId(recommendedNgo.id);
+                                setSelectedNgoDetails(recommendedNgo);
+                                setError("");
                               }}
                               className="rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-semibold text-slate-600 hover:bg-slate-50"
                             >
@@ -1713,90 +1822,7 @@ function SurplusListings() {
             )}
           </section>
 
-          {/* ==================================================
-              LOCATION
-          =================================================== */}
-
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-            <div className="mb-4">
-              <h3 className="text-sm font-bold text-slate-900">
-                Pickup Location
-              </h3>
-              <p className="mt-1 text-xs text-slate-500">
-                Use your current location to fill both coordinates and a Google Maps link, or enter them manually.
-              </p>
-              <button
-                type="button"
-                onClick={handleUseCurrentLocation}
-                disabled={locating}
-                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span>{locating ? "⌛" : "📍"}</span>
-                {locating ? "Getting current location..." : "Use Current Location"}
-              </button>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700">
-                  Latitude
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  value={location.latitude}
-                  onChange={(event) => {
-                    clearAiRecommendation();
-                    setLocation((current) => ({
-                      ...current,
-                      latitude: event.target.value,
-                    }));
-                  }}
-                  placeholder="e.g. 28.4595"
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700">
-                  Longitude
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  value={location.longitude}
-                  onChange={(event) => {
-                    clearAiRecommendation();
-                    setLocation((current) => ({
-                      ...current,
-                      longitude: event.target.value,
-                    }));
-                  }}
-                  placeholder="e.g. 77.0266"
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                  required
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-xs font-semibold text-slate-700">
-                  Google Maps Pickup Link
-                </label>
-                <input
-                  type="url"
-                  value={googleMapsLink}
-                  onChange={(event) => setGoogleMapsLink(event.target.value)}
-                  placeholder="https://www.google.com/maps?q=28.4595,77.0266"
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                  required
-                />
-                <p className="mt-1.5 text-[11px] text-slate-400">
-                  The Current Location button fills this automatically. You can also paste or edit a Google Maps link here.
-                </p>
-              </div>
-            </div>
-          </section>
+         
 
           {/* ==================================================
               AVAILABILITY

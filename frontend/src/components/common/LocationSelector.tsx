@@ -7,12 +7,15 @@ export interface LocationData {
   pincode: string;
   latitude: string;
   longitude: string;
+  google_maps_link: string;
 }
 
 interface LocationSelectorProps {
   value: LocationData;
   onChange: (data: LocationData) => void;
 }
+
+
 
 export default function LocationSelector({
   value,
@@ -57,14 +60,18 @@ export default function LocationSelector({
         const latitude = position.coords.latitude.toFixed(6);
         const longitude = position.coords.longitude.toFixed(6);
 
+        const googleMapsLink =
+          `https://www.google.com/maps?q=${latitude},${longitude}`;
+
         onChange({
           ...value,
           latitude,
           longitude,
+          google_maps_link: googleMapsLink,
         });
 
         showMessage(
-          "Current location captured successfully. You can still edit the coordinates if the pickup point is different.",
+          "Current location captured successfully. Latitude, longitude and Google Maps link have been filled.",
           "success"
         );
 
@@ -100,36 +107,12 @@ export default function LocationSelector({
       ...value,
       latitude: "",
       longitude: "",
+      google_maps_link: "",
     });
 
-    showMessage("Coordinates cleared. You can enter them manually.", "info");
-  }
-
-  function openGoogleMaps() {
-    const latitude = Number(value.latitude);
-    const longitude = Number(value.longitude);
-
-    if (
-      !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude) ||
-      latitude < -90 ||
-      latitude > 90 ||
-      longitude < -180 ||
-      longitude > 180
-    ) {
-      showMessage(
-        "Please provide valid latitude and longitude before opening the map.",
-        "error"
-      );
-      return;
-    }
-
-    const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-    window.open(
-      googleMapsUrl,
-      "_blank",
-      "noopener,noreferrer"
+    showMessage(
+      "Coordinates and Google Maps link cleared.",
+      "info"
     );
   }
 
@@ -153,35 +136,7 @@ export default function LocationSelector({
 
   return (
     <div className="space-y-5">
-      {/* Location heading */}
-      <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">📍</span>
-
-              <h3 className="font-semibold text-slate-900">
-                Pickup Location
-              </h3>
-            </div>
-
-            <p className="mt-1 text-xs leading-5 text-slate-600">
-              Enter the location where the NGO should collect the surplus
-              food. This can be different from your registered business
-              address.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={useCurrentLocation}
-            disabled={locating}
-            className="whitespace-nowrap rounded-lg border border-emerald-600 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {locating ? "Locating..." : "📍 Use Current Location"}
-          </button>
-        </div>
-      </div>
+      
 
       {/* Location message */}
       {locationMessage && (
@@ -201,7 +156,7 @@ export default function LocationSelector({
       {/* Full address */}
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-slate-700">
-          Full Pickup Address
+          Full Address
           <span className="text-red-500"> *</span>
         </label>
 
@@ -221,6 +176,7 @@ export default function LocationSelector({
 
       {/* City / State / Pincode */}
       <div className="grid gap-4 md:grid-cols-3">
+        {/* City */}
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
             City
@@ -237,6 +193,7 @@ export default function LocationSelector({
           />
         </div>
 
+        {/* State */}
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
             State
@@ -286,6 +243,7 @@ export default function LocationSelector({
           </select>
         </div>
 
+        {/* Pincode */}
         <div>
           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
             Pincode
@@ -308,39 +266,33 @@ export default function LocationSelector({
             className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
           />
 
-          {value.pincode.length > 0 && value.pincode.length !== 6 && (
-            <p className="mt-1 text-xs text-amber-600">
-              Pincode must contain 6 digits.
-            </p>
-          )}
+          {value.pincode.length > 0 &&
+            value.pincode.length !== 6 && (
+              <p className="mt-1 text-xs text-amber-600">
+                Pincode must contain 6 digits.
+              </p>
+            )}
         </div>
       </div>
 
-      {/* Coordinates */}
+      {/* Coordinates + Google Maps */}
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🧭</span>
+        <div className="mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🧭</span>
 
-              <p className="text-sm font-semibold text-slate-800">
-                Pickup Coordinates
-              </p>
-            </div>
-
-            <p className="mt-1 text-xs leading-5 text-slate-500">
-              Coordinates help the AI matching engine calculate the distance
-              between the business and NGO.
+            <p className="text-sm font-semibold text-slate-800">
+              Pickup Coordinates
             </p>
           </div>
 
-          {coordinatesValid && (
-            <span className="w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-              ✓ Coordinates valid
-            </span>
-          )}
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Use Current Location to automatically capture the pickup
+            coordinates and generate a Google Maps link.
+          </p>
         </div>
 
+        {/* Latitude / Longitude */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Latitude */}
           <div>
@@ -393,6 +345,28 @@ export default function LocationSelector({
           </div>
         </div>
 
+        {/* Google Maps Link */}
+        <div className="mt-4">
+          <label className="mb-1.5 block text-xs font-semibold text-slate-600">
+            Google Maps Link
+          </label>
+
+          <input
+            type="url"
+            value={value.google_maps_link}
+            onChange={(e) =>
+              update("google_maps_link", e.target.value)
+            }
+            placeholder="https://www.google.com/maps?q=25.5941,85.1376"
+            className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          />
+
+          <p className="mt-1 text-[11px] text-slate-400">
+            This is automatically generated when you use Current Location.
+            You can also paste or edit the link manually.
+          </p>
+        </div>
+
         {/* Coordinate actions */}
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <button
@@ -401,37 +375,37 @@ export default function LocationSelector({
             disabled={locating}
             className="rounded-lg border border-emerald-600 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {locating ? "Locating..." : "📍 Detect Coordinates"}
-          </button>
-
-          <button
-            type="button"
-            onClick={openGoogleMaps}
-            disabled={!coordinatesValid}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            🗺️ Open in Google Maps
+            {locating
+              ? "Locating..."
+              : "📍 Use Current Location"}
           </button>
 
           <button
             type="button"
             onClick={clearCoordinates}
-            disabled={!value.latitude && !value.longitude}
+            disabled={
+              !value.latitude &&
+              !value.longitude &&
+              !value.google_maps_link
+            }
             className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Clear
           </button>
         </div>
 
-        <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5">
-          <p className="text-xs leading-5 text-blue-700">
-            <strong>Tip:</strong> If the food is stored at a different
-            location than your business address, enter the pickup location's
-            coordinates here. You can use Google Maps to find the exact
-            coordinates.
-          </p>
-        </div>
+        {coordinatesValid && (
+          <div className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2.5">
+            <p className="text-xs leading-5 text-emerald-700">
+              ✓ Valid pickup coordinates captured.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+
+
+

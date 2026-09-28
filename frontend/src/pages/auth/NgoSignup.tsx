@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import AuthField from "../../components/auth/AuthField";
@@ -49,6 +48,7 @@ export default function NgoSignup() {
     pincode: "",
     latitude: "",
     longitude: "",
+    google_maps_link: "",
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -81,6 +81,10 @@ export default function NgoSignup() {
   function validateStep(currentStep: number) {
     const next: Record<string, string> = {};
 
+    // ============================================================
+    // STEP 1 - ACCOUNT
+    // ============================================================
+
     if (currentStep === 1) {
       if (form.full_name.trim().length < 2) {
         next.full_name =
@@ -88,7 +92,8 @@ export default function NgoSignup() {
       }
 
       if (!form.email.trim()) {
-        next.email = "Email address is required.";
+        next.email =
+          "Email address is required.";
       } else if (
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
       ) {
@@ -101,6 +106,10 @@ export default function NgoSignup() {
           "Password must contain at least 8 characters.";
       }
     }
+
+    // ============================================================
+    // STEP 2 - ORGANIZATION
+    // ============================================================
 
     if (currentStep === 2) {
       if (form.organization_name.trim().length < 2) {
@@ -127,17 +136,24 @@ export default function NgoSignup() {
       }
     }
 
+    // ============================================================
+    // STEP 3 - LOCATION
+    // ============================================================
+
     if (currentStep === 3) {
       if (!location.address.trim()) {
-        next.address = "Address is required.";
+        next.address =
+          "Address is required.";
       }
 
       if (!location.city.trim()) {
-        next.city = "City is required.";
+        next.city =
+          "City is required.";
       }
 
       if (!location.state) {
-        next.state = "State is required.";
+        next.state =
+          "State is required.";
       }
 
       if (location.pincode.length !== 6) {
@@ -145,7 +161,10 @@ export default function NgoSignup() {
           "Pincode must contain exactly 6 digits.";
       }
 
-      if (!location.latitude || !location.longitude) {
+      if (
+        !location.latitude ||
+        !location.longitude
+      ) {
         next.coordinates =
           "Please use Current Location to capture coordinates.";
       }
@@ -167,15 +186,26 @@ export default function NgoSignup() {
     return true;
   }
 
+  // ============================================================
+  // NEXT STEP
+  // ============================================================
+
   function nextStep() {
+    // Validate only the current step.
     if (!validateStep(step)) {
       return;
     }
 
+    // Move to the next step only.
+    // This does NOT submit the registration.
     setStep((previous) =>
       Math.min(previous + 1, 4)
     );
   }
+
+  // ============================================================
+  // PREVIOUS STEP
+  // ============================================================
 
   function previousStep() {
     setErrors([]);
@@ -186,8 +216,15 @@ export default function NgoSignup() {
     );
   }
 
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  // ============================================================
+  // FINAL SUBMIT
+  // ============================================================
+
+  async function submit() {
+    // Registration is allowed ONLY on Step 4.
+    if (step !== 4) {
+      return;
+    }
 
     if (!validateStep(4)) {
       return;
@@ -231,7 +268,10 @@ export default function NgoSignup() {
       subtitle="Connect your organization with businesses that want to redistribute surplus food."
       mode="signup"
     >
-      {/* Progress */}
+      {/* ============================================================
+          PROGRESS
+      ============================================================ */}
+
       <div className="mb-8">
         <div className="flex items-center">
           {steps.map((label, index) => {
@@ -283,22 +323,41 @@ export default function NgoSignup() {
 
       <FormErrorSummary errors={errors} />
 
-      <form
-        onSubmit={submit}
-        noValidate
-        className="space-y-6"
-      >
-        {/* STEP 1 */}
+      {/* ============================================================
+          MULTI-STEP CONTENT
+
+          IMPORTANT:
+          This is intentionally a <div>, NOT a <form>.
+          Continue therefore cannot trigger browser form submission.
+      ============================================================ */}
+
+      <div className="space-y-6">
+
+        {/* ============================================================
+            STEP 1 - ACCOUNT
+        ============================================================ */}
+
         {step === 1 && (
           <div className="space-y-5">
-            
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">
+                Account & Contact
+              </h3>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Who should we contact about this organization?
+              </p>
+            </div>
 
             <AuthField
               ref={firstFieldRef}
               label="Contact person"
               value={form.full_name}
               onChange={(e) =>
-                update("full_name", e.target.value)
+                update(
+                  "full_name",
+                  e.target.value
+                )
               }
               placeholder="Full name"
               required
@@ -310,7 +369,10 @@ export default function NgoSignup() {
               type="email"
               value={form.email}
               onChange={(e) =>
-                update("email", e.target.value)
+                update(
+                  "email",
+                  e.target.value
+                )
               }
               placeholder="organization@example.com"
               required
@@ -322,7 +384,10 @@ export default function NgoSignup() {
               type="tel"
               value={form.phone}
               onChange={(e) =>
-                update("phone", e.target.value)
+                update(
+                  "phone",
+                  e.target.value
+                )
               }
               placeholder="+91 XXXXX XXXXX"
               hint="Optional"
@@ -333,7 +398,10 @@ export default function NgoSignup() {
               type="password"
               value={form.password}
               onChange={(e) =>
-                update("password", e.target.value)
+                update(
+                  "password",
+                  e.target.value
+                )
               }
               placeholder="Minimum 8 characters"
               required
@@ -342,7 +410,10 @@ export default function NgoSignup() {
           </div>
         )}
 
-        {/* STEP 2 */}
+        {/* ============================================================
+            STEP 2 - ORGANIZATION
+        ============================================================ */}
+
         {step === 2 && (
           <div className="space-y-5">
             <div>
@@ -405,7 +476,10 @@ export default function NgoSignup() {
           </div>
         )}
 
-        {/* STEP 3 */}
+        {/* ============================================================
+            STEP 3 - LOCATION
+        ============================================================ */}
+
         {step === 3 && (
           <div className="space-y-5">
             <div>
@@ -440,7 +514,10 @@ export default function NgoSignup() {
           </div>
         )}
 
-        {/* STEP 4 */}
+        {/* ============================================================
+            STEP 4 - PROFILE
+        ============================================================ */}
+
         {step === 4 && (
           <div className="space-y-5">
             <div>
@@ -473,7 +550,10 @@ export default function NgoSignup() {
               type="url"
               value={form.website}
               onChange={(e) =>
-                update("website", e.target.value)
+                update(
+                  "website",
+                  e.target.value
+                )
               }
               placeholder="https://example.org"
             />
@@ -483,7 +563,10 @@ export default function NgoSignup() {
               type="url"
               value={form.instagram}
               onChange={(e) =>
-                update("instagram", e.target.value)
+                update(
+                  "instagram",
+                  e.target.value
+                )
               }
               placeholder="https://instagram.com/..."
             />
@@ -493,7 +576,10 @@ export default function NgoSignup() {
               type="url"
               value={form.facebook}
               onChange={(e) =>
-                update("facebook", e.target.value)
+                update(
+                  "facebook",
+                  e.target.value
+                )
               }
               placeholder="https://facebook.com/..."
             />
@@ -503,28 +589,24 @@ export default function NgoSignup() {
               type="url"
               value={form.linkedin}
               onChange={(e) =>
-                update("linkedin", e.target.value)
+                update(
+                  "linkedin",
+                  e.target.value
+                )
               }
               placeholder="https://linkedin.com/..."
             />
 
-            <AuthField
-              label="Google Maps link"
-              type="url"
-              value={form.google_maps_link}
-              onChange={(e) =>
-                update(
-                  "google_maps_link",
-                  e.target.value
-                )
-              }
-              placeholder="https://maps.google.com/..."
-            />
+           
           </div>
         )}
 
-        {/* Navigation */}
+        {/* ============================================================
+            NAVIGATION
+        ============================================================ */}
+
         <div className="flex gap-3 pt-2">
+          {/* Back */}
           {step > 1 && (
             <button
               type="button"
@@ -535,6 +617,7 @@ export default function NgoSignup() {
             </button>
           )}
 
+          {/* Continue */}
           {step < 4 ? (
             <button
               type="button"
@@ -544,8 +627,10 @@ export default function NgoSignup() {
               Continue
             </button>
           ) : (
+            /* Final Submit */
             <button
-              type="submit"
+              type="button"
+              onClick={submit}
               disabled={loading}
               className="h-12 flex-1 rounded-xl bg-emerald-600 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -555,7 +640,11 @@ export default function NgoSignup() {
             </button>
           )}
         </div>
-      </form>
+      </div>
+
+      {/* ============================================================
+          LOGIN LINK
+      ============================================================ */}
 
       <p className="mt-7 text-center text-sm text-slate-500">
         Already have an account?{" "}

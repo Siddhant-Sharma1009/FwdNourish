@@ -518,41 +518,81 @@ export default function NGOMatches() {
       await schedulePickup({
         match_id: match.match_id,
 
+        // Keep the exact local wall-clock time selected by the NGO.
+        // Do not convert these values with toISOString(), because that
+        // changes the displayed pickup time to UTC.
         scheduled_start:
-          scheduledStart.toISOString(),
+          `${scheduleForm.date}T${scheduleForm.startTime}`,
 
         scheduled_end:
-          scheduledEnd.toISOString(),
+          `${scheduleForm.date}T${scheduleForm.endTime}`,
 
         notes:
           scheduleForm.notes.trim() ||
           undefined,
       });
 
-      setScheduleSuccess(
-        "Pickup scheduled successfully. Waiting for business confirmation."
-      );
+      // The pickup API has completed successfully. Close the modal
+      // immediately instead of keeping the scheduling card open.
+      setShowScheduleModal(false);
+      setScheduleForm({
+        match: null,
+        date: "",
+        startTime: "",
+        endTime: "",
+        notes: "",
+      });
+      setScheduleSuccess("");
+      setScheduleError("");
 
-      await loadMatches();
-
-      setTimeout(() => {
-        setShowScheduleModal(false);
-
-        setScheduleForm({
-          match: null,
-          date: "",
-          startTime: "",
-          endTime: "",
-          notes: "",
-        });
-
-        setScheduleSuccess("");
-      }, 1500);
+      // Refresh after the modal is closed. A refresh failure must not
+      // turn a successful scheduling action into a scheduling error.
+      loadMatches().catch((refreshError) => {
+        console.error(
+          "Pickup scheduled, but NGO matches refresh failed:",
+          refreshError
+        );
+      });
     } catch (err: any) {
       console.error(
-        "Failed to schedule pickup:",
+        "Schedule pickup request returned an error:",
         err
       );
+
+      // Some backend responses can create the pickup successfully and
+      // then return an error while serializing/processing the response.
+      // Verify the match status before telling the NGO that scheduling
+      // failed.
+      try {
+        const refreshedMatches = await getNGOMatches();
+        const refreshedMatch = refreshedMatches.find(
+          (item) => item.match_id === match.match_id
+        );
+
+        const pickupWasCreated =
+          refreshedMatch &&
+          refreshedMatch.status !== "SUGGESTED";
+
+        if (pickupWasCreated) {
+          setMatches(refreshedMatches);
+          setShowScheduleModal(false);
+          setScheduleForm({
+            match: null,
+            date: "",
+            startTime: "",
+            endTime: "",
+            notes: "",
+          });
+          setScheduleError("");
+          setScheduleSuccess("");
+          return;
+        }
+      } catch (verifyError) {
+        console.error(
+          "Could not verify pickup after scheduling error:",
+          verifyError
+        );
+      }
 
       setScheduleError(
         err?.response?.data?.detail ||

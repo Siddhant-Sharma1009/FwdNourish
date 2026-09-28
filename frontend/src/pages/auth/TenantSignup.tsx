@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import AuthField from "../../components/auth/AuthField";
@@ -60,6 +59,7 @@ export default function TenantSignup() {
     pincode: "",
     latitude: "",
     longitude: "",
+    google_maps_link: "",
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -91,6 +91,7 @@ export default function TenantSignup() {
   function validateStep(currentStep: number) {
     const next: Record<string, string> = {};
 
+    // STEP 1
     if (currentStep === 1) {
       if (form.full_name.trim().length < 2) {
         next.full_name =
@@ -98,7 +99,8 @@ export default function TenantSignup() {
       }
 
       if (!form.email.trim()) {
-        next.email = "Email address is required.";
+        next.email =
+          "Email address is required.";
       } else if (
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
       ) {
@@ -112,6 +114,7 @@ export default function TenantSignup() {
       }
     }
 
+    // STEP 2
     if (currentStep === 2) {
       if (form.business_name.trim().length < 2) {
         next.business_name =
@@ -129,17 +132,21 @@ export default function TenantSignup() {
       }
     }
 
+    // STEP 3
     if (currentStep === 3) {
       if (!location.address.trim()) {
-        next.address = "Address is required.";
+        next.address =
+          "Address is required.";
       }
 
       if (!location.city.trim()) {
-        next.city = "City is required.";
+        next.city =
+          "City is required.";
       }
 
       if (!location.state) {
-        next.state = "State is required.";
+        next.state =
+          "State is required.";
       }
 
       if (location.pincode.length !== 6) {
@@ -147,7 +154,10 @@ export default function TenantSignup() {
           "Pincode must contain exactly 6 digits.";
       }
 
-      if (!location.latitude || !location.longitude) {
+      if (
+        !location.latitude ||
+        !location.longitude
+      ) {
         next.coordinates =
           "Please use Current Location to capture coordinates.";
       }
@@ -170,10 +180,12 @@ export default function TenantSignup() {
   }
 
   function nextStep() {
+    // Validate only the current step.
     if (!validateStep(step)) {
       return;
     }
 
+    // Never go beyond Step 4.
     setStep((previous) =>
       Math.min(previous + 1, 4)
     );
@@ -188,9 +200,15 @@ export default function TenantSignup() {
     );
   }
 
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function submit() {
+    // EXTRA SAFETY:
+    // Registration can ONLY happen on Step 4.
+    if (step !== 4) {
+      return;
+    }
 
+    // Step 4 currently contains optional fields,
+    // but keep the validation mechanism in place.
     if (!validateStep(4)) {
       return;
     }
@@ -282,11 +300,14 @@ export default function TenantSignup() {
 
       <FormErrorSummary errors={errors} />
 
-      <form
-        onSubmit={submit}
-        noValidate
-        className="space-y-6"
-      >
+      {/* 
+        IMPORTANT:
+        This is intentionally NOT a <form>.
+        This signup is a 4-step wizard and each step
+        is controlled explicitly with buttons.
+      */}
+      <div className="space-y-6">
+
         {/* STEP 1 */}
         {step === 1 && (
           <div className="space-y-5">
@@ -380,7 +401,9 @@ export default function TenantSignup() {
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                 Business type
-                <span className="ml-1 text-red-500">*</span>
+                <span className="ml-1 text-red-500">
+                  *
+                </span>
               </label>
 
               <select
@@ -518,20 +541,7 @@ export default function TenantSignup() {
                 update("linkedin", e.target.value)
               }
               placeholder="https://linkedin.com/..."
-            />
-
-            <AuthField
-              label="Google Maps link"
-              type="url"
-              value={form.google_maps_link}
-              onChange={(e) =>
-                update(
-                  "google_maps_link",
-                  e.target.value
-                )
-              }
-              placeholder="https://maps.google.com/..."
-            />
+            />         
 
             <AuthField
               label="Business description"
@@ -571,7 +581,8 @@ export default function TenantSignup() {
             </button>
           ) : (
             <button
-              type="submit"
+              type="button"
+              onClick={submit}
               disabled={loading}
               className="h-12 flex-1 rounded-xl bg-emerald-600 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -581,7 +592,7 @@ export default function TenantSignup() {
             </button>
           )}
         </div>
-      </form>
+      </div>
 
       <p className="mt-7 text-center text-sm text-slate-500">
         Already have an account?{" "}

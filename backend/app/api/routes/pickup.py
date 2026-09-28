@@ -29,7 +29,13 @@ router = APIRouter(
 # ============================================================
 
 def normalize_datetime(value):
-   
+    """
+    Convert timezone-aware datetimes to naive UTC datetimes.
+
+    PostgreSQL DateTime fields in this project are stored as
+    timezone-naive values, while the frontend sends ISO strings
+    containing timezone information.
+    """
 
     if value is None:
         return None
@@ -50,7 +56,10 @@ def get_business_user(
     db: Session,
     tenant_id: int,
 ) -> User | None:
-    
+    """
+    Find the active business/tenant user associated
+    with the given tenant.
+    """
 
     return (
         db.query(User)
@@ -66,7 +75,9 @@ def get_ngo_user(
     db: Session,
     ngo_id: int,
 ) -> User | None:
-   
+    """
+    Find the user associated with an NGO profile.
+    """
 
     ngo = (
         db.query(NGO)
@@ -94,8 +105,8 @@ def get_ngo_user(
 
 def serialize_pickup(db: Session, pickup: Pickup) -> dict:
     """
-    Return pickup data together with the donor business and
-    NGO contact information needed by both sides of the flow.
+    Return pickup data together with donation quantity and
+    donor/NGO contact information required by both dashboards.
     """
 
     donation = (
@@ -143,17 +154,6 @@ def serialize_pickup(db: Session, pickup: Pickup) -> dict:
         "donation_id": pickup.donation_id,
         "match_id": pickup.match_id,
         "ngo_id": pickup.ngo_id,
-
-        # Donation quantity / sustainability data
-        "donation_quantity": (
-            donation.quantity if donation else None
-        ),
-        "committed_quantity": (
-            donation.committed_quantity if donation else None
-        ),
-        "donation_unit": (
-            donation.unit if donation else None
-        ),
         "scheduled_start": pickup.scheduled_start,
         "scheduled_end": pickup.scheduled_end,
         "pickup_location": pickup.pickup_location,
@@ -163,6 +163,22 @@ def serialize_pickup(db: Session, pickup: Pickup) -> dict:
         "business_confirmation": pickup.business_confirmation,
         "notes": pickup.notes,
         "created_at": pickup.created_at,
+
+        # Sustainability-impact fields.
+        "donation_quantity": (
+            donation.quantity if donation else None
+        ),
+        "committed_quantity": (
+            donation.committed_quantity if donation else None
+        ),
+        "donation_unit": (
+            getattr(donation, "unit", None) if donation else None
+        ),
+        "donation_status": (
+            donation.donation_status if donation else None
+        ),
+
+        # Donor business details.
         "donor_organization_name": (
             donor_tenant.name if donor_tenant else None
         ),
@@ -175,6 +191,8 @@ def serialize_pickup(db: Session, pickup: Pickup) -> dict:
         "donor_owner_email": (
             donor_user.email if donor_user else None
         ),
+
+        # NGO details.
         "ngo_organization_name": (
             ngo.organization_name if ngo else None
         ),
@@ -187,8 +205,8 @@ def serialize_pickup(db: Session, pickup: Pickup) -> dict:
         "ngo_contact_email": (
             ngo_user.email if ngo_user else None
         ),
-        # The logged-in NGO user is the person recorded as
-        # coming to collect the donation for this pickup.
+
+        # Person collecting the donation.
         "pickup_person_name": (
             ngo_user.full_name if ngo_user else None
         ),
@@ -208,6 +226,7 @@ def serialize_pickup(db: Session, pickup: Pickup) -> dict:
 
 @router.post(
     "/",
+    response_model=PickupResponse,
     status_code=201,
 )
 def schedule_pickup(
@@ -459,7 +478,7 @@ def schedule_pickup(
     db.commit()
     db.refresh(pickup)
 
-    return serialize_pickup(db, pickup)
+    return pickup
 
 
 # ============================================================
@@ -468,6 +487,7 @@ def schedule_pickup(
 
 @router.get(
     "/ngo",
+    response_model=list[dict],
 )
 def get_ngo_pickups(
     db: Session = Depends(get_db),
@@ -491,7 +511,7 @@ def get_ngo_pickups(
             detail="NGO profile not found.",
         )
 
-    return (
+    pickups = (
         db.query(Pickup)
         .filter(
             Pickup.ngo_id == ngo.id
@@ -502,6 +522,13 @@ def get_ngo_pickups(
         .all()
     )
 
+    # Return the enriched pickup payload so the NGO dashboard receives
+    # donation_quantity, committed_quantity and donation_status.
+    return [
+        serialize_pickup(db, pickup)
+        for pickup in pickups
+    ]
+
 
 # ============================================================
 # GET BUSINESS PICKUPS
@@ -509,6 +536,7 @@ def get_ngo_pickups(
 
 @router.get(
     "/business",
+    response_model=list[dict],
 )
 def get_business_pickups(
     db: Session = Depends(get_db),
@@ -525,7 +553,7 @@ def get_business_pickups(
             detail="Tenant profile is not configured.",
         )
 
-    return (
+    pickups = (
         db.query(Pickup)
         .join(
             Donation,
@@ -540,6 +568,11 @@ def get_business_pickups(
         .all()
     )
 
+    return [
+        serialize_pickup(db, pickup)
+        for pickup in pickups
+    ]
+
 
 # ============================================================
 # NGO CONFIRM PICKUP
@@ -547,6 +580,7 @@ def get_business_pickups(
 
 @router.patch(
     "/{pickup_id}/ngo-confirm",
+    response_model=PickupResponse,
 )
 def ngo_confirm_pickup(
     pickup_id: int,
@@ -656,7 +690,7 @@ def ngo_confirm_pickup(
     db.commit()
     db.refresh(pickup)
 
-    return serialize_pickup(db, pickup)
+    return pickup
 
 
 # ============================================================
@@ -665,6 +699,7 @@ def ngo_confirm_pickup(
 
 @router.patch(
     "/{pickup_id}/business-confirm",
+    response_model=PickupResponse,
 )
 def business_confirm_pickup(
     pickup_id: int,
@@ -770,7 +805,7 @@ def business_confirm_pickup(
     db.commit()
     db.refresh(pickup)
 
-    return serialize_pickup(db, pickup)
+    return pickup
 
 
 # ============================================================
@@ -779,6 +814,7 @@ def business_confirm_pickup(
 
 @router.patch(
     "/{pickup_id}/ngo-cancel",
+    response_model=PickupResponse,
 )
 def ngo_cancel_pickup(
     pickup_id: int,
@@ -890,7 +926,7 @@ def ngo_cancel_pickup(
     db.commit()
     db.refresh(pickup)
 
-    return serialize_pickup(db, pickup)
+    return pickup
 
 
 # ============================================================
@@ -899,6 +935,7 @@ def ngo_cancel_pickup(
 
 @router.patch(
     "/{pickup_id}/business-cancel",
+    response_model=PickupResponse,
 )
 def business_cancel_pickup(
     pickup_id: int,
@@ -1006,7 +1043,7 @@ def business_cancel_pickup(
     db.commit()
     db.refresh(pickup)
 
-    return serialize_pickup(db, pickup)
+    return pickup
 
 
 # ============================================================
@@ -1016,6 +1053,7 @@ def business_cancel_pickup(
 
 @router.patch(
     "/{pickup_id}/complete",
+    response_model=PickupResponse,
 )
 def complete_pickup(
     pickup_id: int,
@@ -1061,24 +1099,6 @@ def complete_pickup(
         raise HTTPException(
             status_code=400,
             detail="Pickup is already completed.",
-        )
-
-    if pickup.status != "READY_FOR_PICKUP":
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "The donation can be marked as donated only after "
-                "both the NGO and business have confirmed the pickup."
-            ),
-        )
-
-    if (
-        pickup.ngo_confirmation != "CONFIRMED"
-        or pickup.business_confirmation != "CONFIRMED"
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Both pickup confirmations are required before donation completion.",
         )
 
     donation = (
@@ -1143,7 +1163,7 @@ def complete_pickup(
             title="Pickup Completed",
             message=(
                 f"Pickup #{pickup.id} for donation "
-                f"{donation.id} has been completed."
+                f"#{donation.id} has been completed."
             ),
             notification_type="PICKUP_COMPLETED",
         )
