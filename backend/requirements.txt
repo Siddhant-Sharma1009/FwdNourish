@@ -21,4 +21,6 @@ tensorflow
 joblib
 bcrypt
 PyJWT
+email-validator
+
 datasets>=3.0
