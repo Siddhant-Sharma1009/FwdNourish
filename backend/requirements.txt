@@ -19,5 +19,5 @@ scikit-learn
 
 tensorflow
 joblib
-
+bcrypt
 datasets>=3.0
