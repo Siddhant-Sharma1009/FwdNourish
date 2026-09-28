@@ -1,8 +1,5 @@
 import api from "./api";
-import type {
-  AdminUser,
-  User,
-} from "../types/auth";
+import type {AdminUser} from "../types/auth";
 
 export interface AdminStats {
   total_users: number;

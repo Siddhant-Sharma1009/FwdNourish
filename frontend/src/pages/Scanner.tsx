@@ -82,11 +82,7 @@ export default function Scanner() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  /*
-   * ---------------------------------------------------------
-   * LOAD CATEGORIES
-   * ---------------------------------------------------------
-   */
+  
   useEffect(() => {
     async function loadCategories() {
       try {
@@ -101,11 +97,7 @@ export default function Scanner() {
     loadCategories();
   }, []);
 
-  /*
-   * ---------------------------------------------------------
-   * UPDATE FORM
-   * ---------------------------------------------------------
-   */
+  
   function updateForm(
     field: keyof ItemForm,
     value: string | number
@@ -134,12 +126,7 @@ export default function Scanner() {
     setMessage("");
 
     try {
-      const inventory =
-        await getInventoryBySku(
-          scannedSku,
-          tenantId
-        );
-
+      const inventory = await getInventoryBySku(scannedSku);
 
       setCurrentItem(inventory);
 

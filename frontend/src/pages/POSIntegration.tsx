@@ -38,7 +38,7 @@ export default function PosTerminal() {
       }
 
       try {
-        const items = await getInventory(tenantId);
+        const items = await getInventory();
         setInventoryList(items);
       } catch (err) {
         console.error("Failed to fetch inventory", err);
@@ -174,10 +174,7 @@ export default function PosTerminal() {
     try {
       setCheckingSku(true);
 
-      const inventory = await getInventoryBySku(
-        query,
-        tenantId
-      );
+      const inventory = await getInventoryBySku(query);
 
       addItemToCart(inventory, 1);
       setItemSearch("");

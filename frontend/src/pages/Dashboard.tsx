@@ -9,7 +9,7 @@ import type { DonationResponse } from "../types/donation";
 import { getInventory } from "../services/inventoryApi";
 import { getTransactions } from "../services/transactionApi";
 import { getMyDonations } from "../services/donationApi";
-import { getBusinessPickups, type Pickup,} from "../services/pickupApi";
+import { getBusinessPickups, type Pickup, } from "../services/pickupApi";
 import type { AIPrediction } from "../services/aiPredictionApi";
 import { getAIPredictions } from "../services/aiPredictionApi";
 import { calculateSustainabilityImpact } from "../utils/sustainabilityImpact";
@@ -495,7 +495,11 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
+              
               {aiPredictions.slice(0, 8).map((prediction) => {
+                const predictionInventory = inventory.find(
+                  (item) => item.id === prediction.inventory_id
+                );
                 const riskClasses = prediction.risk_level === "HIGH"
                   ? "bg-rose-100 text-rose-700"
                   : prediction.risk_level === "MEDIUM"
@@ -508,8 +512,8 @@ function Dashboard() {
                     onClick={() => navigate("/ai-forecasting")}
                     className="cursor-pointer hover:bg-slate-50/70"
                   >
-                    <td className="px-4 py-3 font-semibold text-slate-800">{prediction.sku}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-800">{prediction.product_name}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-800">{predictionInventory?.sku ?? "-"}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-800"> {predictionInventory?.name ?? `Inventory #${prediction.inventory_id}`} </td>
                     <td className="px-4 py-3 text-slate-600">{Number(prediction.forecast_daily_demand || 0).toFixed(2)}</td>
                     <td className="px-4 py-3 font-semibold text-slate-700">{Number(prediction.risk_score || 0).toFixed(2)}</td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${riskClasses}`}>{prediction.risk_level}</span></td>
@@ -526,7 +530,7 @@ function Dashboard() {
       </section>
 
       {/* 7-day transaction activity trend */}
-      
+
       <section className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
         {/* Header */}
         <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">

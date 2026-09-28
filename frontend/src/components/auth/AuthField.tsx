@@ -1,7 +1,6 @@
 import {
   forwardRef,
   type InputHTMLAttributes,
-  type Ref,
   type TextareaHTMLAttributes,
 } from "react";
 
@@ -34,7 +33,6 @@ const AuthField = forwardRef<
     required,
     hint,
     className = "",
-    ...fieldProps
   } = props;
 
   const commonClass = `
@@ -60,17 +58,45 @@ const AuthField = forwardRef<
       </label>
 
       {props.textarea ? (
-        <textarea
-          {...fieldProps}
-          ref={ref as Ref<HTMLTextAreaElement>}
-          className={`${commonClass} min-h-[110px] resize-y py-3`}
-        />
+        (() => {
+          const {
+            label: _label,
+            error: _error,
+            required: _required,
+            hint: _hint,
+            className: _className,
+            textarea: _textarea,
+            ...textareaProps
+          } = props;
+
+          return (
+            <textarea
+              {...textareaProps}
+              ref={ref as React.Ref<HTMLTextAreaElement>}
+              className={`${commonClass} min-h-[110px] resize-y py-3`}
+            />
+          );
+        })()
       ) : (
-        <input
-          {...fieldProps}
-          ref={ref as Ref<HTMLInputElement>}
-          className={`${commonClass} h-12`}
-        />
+        (() => {
+          const {
+            label: _label,
+            error: _error,
+            required: _required,
+            hint: _hint,
+            className: _className,
+            textarea: _textarea,
+            ...inputProps
+          } = props;
+
+          return (
+            <input
+              {...inputProps}
+              ref={ref as React.Ref<HTMLInputElement>}
+              className={`${commonClass} h-12`}
+            />
+          );
+        })()
       )}
 
       {error ? (
@@ -96,4 +122,3 @@ const AuthField = forwardRef<
 AuthField.displayName = "AuthField";
 
 export default AuthField;
-

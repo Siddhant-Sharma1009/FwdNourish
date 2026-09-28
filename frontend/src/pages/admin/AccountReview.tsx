@@ -5,7 +5,6 @@ import {
   useParams,
 } from "react-router-dom";
 
-import type { AdminUser } from "../../types/auth";
 
 import {
   approveUser,

@@ -2066,8 +2066,7 @@ function SurplusListings() {
                     const status =
                       listing.donation_status.toUpperCase();
 
-                    const canCancel =
-                      status === "PUBLISHED";
+                
 
                     const listingInventory =
                       inventory.find(

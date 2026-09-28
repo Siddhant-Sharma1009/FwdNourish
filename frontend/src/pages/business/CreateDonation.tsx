@@ -21,7 +21,6 @@ import type {
   DonationInventoryItem,
   LocationData,
   NGOOption,
-  AIRecommendedNGO,
 } from "../../types/donation";
 
 import { getInventory } from "../../services/inventoryApi";
@@ -32,7 +31,6 @@ import {
 
 import {
   getAvailableNGOs,
-  getAIRecommendedNGOs,
 } from "../../services/ngoApi";
 
 import LocationSelector from "../../components/common/LocationSelector";
@@ -51,6 +49,7 @@ const initialLocation: LocationData = {
   pincode: "",
   latitude: "",
   longitude: "",
+  google_maps_link: "",
 };
 
 
@@ -130,10 +129,6 @@ export default function CreateDonation() {
   const [ngos, setNGOs] =
     useState<NGOOption[]>([]);
 
-  const [aiRecommendations, setAIRecommendations] =
-    useState<AIRecommendedNGO[]>(
-      []
-    );
 
   const [selectedInventoryId, setSelectedInventoryId] =
     useState<number | null>(
@@ -482,20 +477,6 @@ export default function CreateDonation() {
   }
 
 
-  async function loadAIRecommendations() {
-
-    setError("");
-
-    /*
-     * AI recommendations are generated
-     * after the donation exists.
-     *
-     * We therefore create the donation first
-     * in the final publish step if AI mode is
-     * selected.
-     */
-  }
-
 
   async function submitDonation() {
 
@@ -530,7 +511,7 @@ export default function CreateDonation() {
 
       setLoading(true);
 
-      const result =
+      
         await createDonation({
           tenant_id:
             tenantId,
@@ -587,32 +568,8 @@ export default function CreateDonation() {
         });
 
 
-      /*
-       * If AI mode was used, refresh
-       * recommendations against the newly
-       * created donation.
-       */
-      if (
-        selectionMode === "AI"
-      ) {
-        try {
-          const recommendations =
-            await getAIRecommendedNGOs(
-              result.id
-            );
-
-          setAIRecommendations(
-            recommendations
-          );
-        } catch {
-          /*
-           * Donation itself was already
-           * created successfully.
-           */
-        }
-      }
-
-
+   
+    
       setSuccess(
         "Donation published successfully."
       );

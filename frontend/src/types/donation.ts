@@ -17,6 +17,7 @@ export interface LocationData {
   pincode: string;
   latitude: string;
   longitude: string;
+  google_maps_link: string;
 }
 
 export interface NGOOption {

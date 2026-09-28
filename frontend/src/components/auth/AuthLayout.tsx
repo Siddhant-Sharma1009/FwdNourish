@@ -1,9 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
 import AuthIllustration from "./AuthIllustration";
-import { Store, Bot, Handshake, Heart } from "lucide-react";
-
-
 interface AuthLayoutProps {
   children: ReactNode;
   title: string;

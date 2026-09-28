@@ -5,8 +5,7 @@ import { getExpiryAlerts } from "../services/expiryApi";
 import ExpiryBadge from "../components/inventory/ExpiryBadge";
 
 function ExpiryAlerts() {
-  const tenantId = 1;
-
+  
   const [alerts, setAlerts] = useState<ExpiryStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +17,7 @@ function ExpiryAlerts() {
   useEffect(() => {
     async function loadAlerts() {
       try {
-        const data = await getExpiryAlerts(tenantId);
+        const data = await getExpiryAlerts();
         setAlerts(data);
       } catch (error) {
         console.error(error);

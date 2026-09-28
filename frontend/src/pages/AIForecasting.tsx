@@ -768,8 +768,7 @@ function AIForecasting() {
                 </span>,
 
                 <span>
-                  {wasteRiskByItemId.get(item.inventory_id)?.current_stock ?? 0}{" "}
-                  {item.unit ?? "units"}
+                  {wasteRiskByItemId.get(item.inventory_id)?.current_stock ?? 0} units
                 </span>,
 
                 <span>
