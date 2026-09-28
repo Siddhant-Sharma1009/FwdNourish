@@ -20,4 +20,5 @@ scikit-learn
 tensorflow
 joblib
 bcrypt
+PyJWT
 datasets>=3.0
