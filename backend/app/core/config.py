@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import make_url
 
 
 class Settings(BaseSettings):
@@ -44,3 +45,21 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+# Temporary database configuration diagnostic.
+# This does NOT print the database password.
+try:
+    db_url = make_url(settings.DATABASE_URL)
+
+    print("===== DATABASE CONFIG CHECK =====")
+    print("DB DRIVER:", db_url.drivername)
+    print("DB USER:", db_url.username)
+    print("DB HOST:", db_url.host)
+    print("DB PORT:", db_url.port)
+    print("DB NAME:", db_url.database)
+    print("PASSWORD PRESENT:", bool(db_url.password))
+    print("=================================")
+
+except Exception as e:
+    print("DATABASE CONFIG CHECK FAILED:", repr(e))
