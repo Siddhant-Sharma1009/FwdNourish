@@ -27,7 +27,7 @@ from app.core.scheduler import start_scheduler, stop_scheduler
 from app.core.config import settings
 
 Base.metadata.create_all(bind=engine)
-
+print("REGISTERED TABLES:", list(Base.metadata.tables.keys()))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
