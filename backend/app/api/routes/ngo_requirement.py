@@ -32,9 +32,7 @@ def create_requirement(
     db: Session = Depends(get_db),
     user: User = Depends(require_ngo),
 ):
-    """
-    Create a food requirement for the logged-in NGO.
-    """
+    
 
     ngo = (
         db.query(NGO)
@@ -85,9 +83,7 @@ def get_my_requirements(
     db: Session = Depends(get_db),
     user: User = Depends(require_ngo),
 ):
-    """
-    Get all requirements created by the logged-in NGO.
-    """
+    
 
     ngo = (
         db.query(NGO)
@@ -122,9 +118,7 @@ def get_requirement(
     db: Session = Depends(get_db),
     user: User = Depends(require_ngo),
 ):
-    """
-    Get one requirement belonging to the logged-in NGO.
-    """
+    
 
     ngo = (
         db.query(NGO)
@@ -165,9 +159,7 @@ def cancel_requirement(
     db: Session = Depends(get_db),
     user: User = Depends(require_ngo),
 ):
-    """
-    Cancel an active NGO requirement.
-    """
+    
 
     ngo = (
         db.query(NGO)

@@ -27,12 +27,7 @@ def get_available_ngos(
     db: Session = Depends(get_db),
     user: User = Depends(require_tenant),
 ):
-    """
-    Return all active registered NGOs with their active
-    food requirements.
-
-    Used by businesses when manually selecting an NGO.
-    """
+   
 
     ngos = (
         db.query(NGO)

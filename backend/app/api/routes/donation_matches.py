@@ -945,9 +945,6 @@ def select_donation_match(
 # GET NGO MATCHES
 # ============================================================
 
-# ============================================================
-# GET NGO MATCHES
-# ============================================================
 
 @router.get("/ngo/matches")
 def get_ngo_matches(
@@ -1045,13 +1042,7 @@ def get_ngo_matches(
             .first()
         )
 
-        # ----------------------------------------------------
-        # DONOR USER
-        #
-        # Do NOT restrict this query to role == "TENANT".
-        # We only need the business user's account belonging
-        # to this tenant.
-        # ----------------------------------------------------
+
 
         donor_user = (
             db.query(User)
@@ -1064,12 +1055,6 @@ def get_ngo_matches(
             .first()
         )
 
-        # ----------------------------------------------------
-        # PICKUP LOCATION
-        #
-        # Donation location has priority.
-        # Tenant location is used as fallback.
-        # ----------------------------------------------------
 
         pickup_location = (
             donation.pickup_location
