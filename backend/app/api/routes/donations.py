@@ -443,23 +443,16 @@ def complete_donation(
     user: User = Depends(require_tenant),
 ):
     """
-    Mark a donation as completed after the business confirms
-    that the food has actually been handed over.
+    Complete a donation together with its pickup and match.
 
-    Flow:
-
-        Business clicks "Donated"
-            -> donation becomes COMPLETED
-            -> inventory quantity is reduced
-            -> remaining donation quantity becomes 0
-            -> DONATION transaction is created
-            -> transaction is linked to this exact donation
-            -> selected/accepted NGO receives notification
+    This endpoint is kept synchronized with the pickup completion
+    workflow so that all related records reach the same final state.
     """
 
     # ---------------------------------------------------------
     # 1. Validate business account
     # ---------------------------------------------------------
+
     if not user.tenant_id:
         raise HTTPException(
             status_code=403,
@@ -469,6 +462,7 @@ def complete_donation(
     # ---------------------------------------------------------
     # 2. Find donation belonging to logged-in business
     # ---------------------------------------------------------
+
     donation = (
         db.query(Donation)
         .filter(
@@ -485,25 +479,69 @@ def complete_donation(
         )
 
     # ---------------------------------------------------------
-    # 3. Only pickup-related donations can be completed
+    # 3. Find associated pickup
     # ---------------------------------------------------------
-    allowed_statuses = {
-        "PICKUP_SCHEDULED",
-        "READY_FOR_PICKUP",
-    }
 
-    if donation.donation_status not in allowed_statuses:
+    pickup = (
+        db.query(Pickup)
+        .filter(
+            Pickup.donation_id == donation.id,
+        )
+        .order_by(Pickup.id.desc())
+        .first()
+    )
+
+    if not pickup:
+        raise HTTPException(
+            status_code=400,
+            detail="This donation does not have a pickup scheduled.",
+        )
+
+    # ---------------------------------------------------------
+    # 4. Validate pickup state
+    # ---------------------------------------------------------
+
+    if pickup.status == "CANCELLED":
+        raise HTTPException(
+            status_code=400,
+            detail="Cancelled pickup cannot be completed.",
+        )
+
+    if pickup.status == "COMPLETED":
+        raise HTTPException(
+            status_code=400,
+            detail="Pickup is already completed.",
+        )
+
+    if pickup.status != "READY_FOR_PICKUP":
         raise HTTPException(
             status_code=400,
             detail=(
-                "This donation cannot be marked as donated yet. "
-                "The donation must have a scheduled or ready pickup."
+                "The donation can be marked as donated only after "
+                "the pickup is ready for pickup."
             ),
         )
 
     # ---------------------------------------------------------
-    # 4. Get inventory item
+    # 5. Both sides must have confirmed the pickup
     # ---------------------------------------------------------
+
+    if pickup.ngo_confirmation != "CONFIRMED":
+        raise HTTPException(
+            status_code=400,
+            detail="The NGO must confirm the pickup before donation completion.",
+        )
+
+    if pickup.business_confirmation != "CONFIRMED":
+        raise HTTPException(
+            status_code=400,
+            detail="The business must confirm the pickup before donation completion.",
+        )
+
+    # ---------------------------------------------------------
+    # 6. Find inventory item
+    # ---------------------------------------------------------
+
     inventory = (
         db.query(Inventory)
         .filter(
@@ -518,15 +556,13 @@ def complete_donation(
     if not inventory:
         raise HTTPException(
             status_code=404,
-            detail=(
-                "Inventory item associated with this donation "
-                "was not found."
-            ),
+            detail="Inventory item associated with this donation was not found.",
         )
 
     # ---------------------------------------------------------
-    # 5. Make sure inventory still has enough quantity
+    # 7. Validate inventory quantity
     # ---------------------------------------------------------
+
     if inventory.quantity < donation.quantity:
         raise HTTPException(
             status_code=400,
@@ -538,110 +574,82 @@ def complete_donation(
         )
 
     # ---------------------------------------------------------
-    # 6. Find the NGO associated with this donation
+    # 8. Deduct inventory
     # ---------------------------------------------------------
-    donation_match = (
-        db.query(DonationMatch)
-        .filter(
-            DonationMatch.donation_id == donation.id,
-            DonationMatch.status.in_(
-                [
-                    "ACCEPTED",
-                    "PICKUP_SCHEDULED",
-                    "READY_FOR_PICKUP",
-                    "SUGGESTED",
-                ]
-            ),
-        )
-        .order_by(DonationMatch.id.desc())
-        .first()
-    )
 
-    # ---------------------------------------------------------
-    # 7. Deduct donated quantity from inventory
-    # ---------------------------------------------------------
     inventory.quantity -= donation.quantity
 
     # ---------------------------------------------------------
-    # 8. Mark donation as completed
+    # 9. Complete pickup
     # ---------------------------------------------------------
+
+    pickup.status = "COMPLETED"
+    pickup.confirmation_status = "CONFIRMED"
+    pickup.business_confirmation = "CONFIRMED"
+    pickup.ngo_confirmation = "CONFIRMED"
+
+    # ---------------------------------------------------------
+    # 10. Complete donation
+    # ---------------------------------------------------------
+
     donation.donation_status = "COMPLETED"
+    donation.committed_quantity = donation.quantity
     donation.remaining_quantity = 0
     donation.donated_at = datetime.utcnow()
 
     # ---------------------------------------------------------
-    # 9. Save NGO recipient name when available
+    # 11. Complete donation match
     # ---------------------------------------------------------
-    if donation_match:
-        ngo = (
-            db.query(NGO)
-            .filter(
-                NGO.id == donation_match.ngo_id
-            )
-            .first()
+
+    donation_match = (
+        db.query(DonationMatch)
+        .filter(
+            DonationMatch.id == pickup.match_id,
         )
-
-        if ngo:
-            # Keep the existing recipient_name field useful.
-            #
-            # We intentionally don't assume a particular NGO
-            # organization-name column here.
-            if not donation.recipient_name:
-                donation.recipient_name = f"NGO #{ngo.id}"
-
-    # ---------------------------------------------------------
-    # 10. CREATE THE DONATION TRANSACTION
-    # ---------------------------------------------------------
-    donation_transaction = Transaction(
-        tenant_id=user.tenant_id,
-        inventory_id=donation.inventory_id,
-        donation_id=donation.id,
-        transaction_type="DONATION",
-        quantity=donation.quantity,
-        note="Food donation",
+        .first()
     )
 
-    db.add(donation_transaction)
+    if donation_match:
+        donation_match.status = "COMPLETED"
 
     # ---------------------------------------------------------
-    # 11. Notify NGO
+    # 12. Notify NGO
     # ---------------------------------------------------------
-    if donation_match:
-        ngo = (
-            db.query(NGO)
+
+    ngo = (
+        db.query(NGO)
+        .filter(
+            NGO.id == pickup.ngo_id,
+        )
+        .first()
+    )
+
+    if ngo:
+        ngo_user = (
+            db.query(User)
             .filter(
-                NGO.id == donation_match.ngo_id
+                User.id == ngo.user_id,
             )
             .first()
         )
 
-        if ngo:
-            ngo_user = (
-                db.query(User)
-                .filter(
-                    User.id == ngo.user_id
-                )
-                .first()
+        if ngo_user:
+            create_notification(
+                db=db,
+                user_id=ngo_user.id,
+                title="Pickup Completed",
+                message=(
+                    f"Pickup #{pickup.id} for donation "
+                    f"#{donation.id} has been completed."
+                ),
+                notification_type="PICKUP_COMPLETED",
             )
 
-            if ngo_user:
-                create_notification(
-                    db=db,
-                    user_id=ngo_user.id,
-                    title="Donation Completed",
-                    message=(
-                        f"Donation {donation.id} has been marked as "
-                        f"donated by the business. "
-                        f"The pickup/donation process is now completed."
-                    ),
-                    notification_type="DONATION_COMPLETED",
-                )
+    # ---------------------------------------------------------
+    # 13. Commit everything together
+    # ---------------------------------------------------------
 
-    # ---------------------------------------------------------
-    # 12. Commit donation + inventory + transaction together
-    # ---------------------------------------------------------
     db.commit()
-
     db.refresh(donation)
 
     return donation
