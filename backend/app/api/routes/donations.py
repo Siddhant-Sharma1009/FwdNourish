@@ -13,6 +13,7 @@ from app.models.ngo_requirement import NGORequirement
 from app.models.inventory import Inventory
 from app.models.tenant import Tenant
 from app.models.user import User
+from app.models.pickup import Pickup
 from app.services.donation_matching_service import generate_matches_for_donation
 from app.services.notification_service import create_notification
 from app.schemas.donation import (
