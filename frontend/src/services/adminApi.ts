@@ -128,3 +128,4 @@ export async function removeUser(userId: number) {
     await api.delete(`/admin/users/${userId}`)
   ).data;
 }
+

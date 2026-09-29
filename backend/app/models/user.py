@@ -25,6 +25,18 @@ class User(Base):
         ForeignKey("users.id"), nullable=True
     )
     rejection_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    
+    reset_password_token: Mapped[str | None] = mapped_column(
+    String(128),
+    nullable=True,
+    index=True,
+    )
+
+    reset_password_expires: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+    
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )

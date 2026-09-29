@@ -1,3 +1,10 @@
+import hashlib
+import secrets
+import os
+
+from datetime import datetime, timedelta
+from pydantic import BaseModel, Field
+from app.services.email_service import send_password_reset_email
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -19,9 +26,19 @@ from app.schemas.auth import (
     TenantSignup,
     UserResponse,
 )
-from pydantic import BaseModel
+
 from typing import Optional
 
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    password: str = Field(
+        min_length=8,
+        max_length=128,
+    )
+    
 class ProfileUpdateRequest(BaseModel):
     full_name: str
     phone: Optional[str] = None
@@ -535,4 +552,126 @@ def change_password(
 
     return {
         "message": "Password changed successfully.",
+    }
+    
+    
+@router.post("/forgot-password")
+def forgot_password(
+    data: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    email = data.email.strip().lower()
+
+    user = (
+        db.query(User)
+        .filter(User.email == email)
+        .first()
+    )
+
+    # Always return the same response.
+    # This prevents email/account enumeration.
+    generic_response = {
+        "message": (
+            "If an account with that email exists, "
+            "a password reset link has been sent."
+        )
+    }
+
+    if not user:
+        return generic_response
+
+    # Generate secure random token.
+    raw_token = secrets.token_urlsafe(48)
+
+    # Store only the hash in the database.
+    token_hash = hashlib.sha256(
+        raw_token.encode("utf-8")
+    ).hexdigest()
+
+    user.reset_password_token = token_hash
+    user.reset_password_expires = (
+        datetime.utcnow() + timedelta(hours=1)
+    )
+
+    db.commit()
+
+    frontend_url = (
+        os.getenv("FRONTEND_URL")
+        or os.getenv("CLIENT_URL")
+    )
+
+    if not frontend_url:
+        raise HTTPException(
+            status_code=500,
+            detail="Frontend URL is not configured.",
+        )
+
+    frontend_url = frontend_url.rstrip("/")
+
+    reset_url = (
+        f"{frontend_url}/reset-password/{raw_token}"
+    )
+
+    try:
+        send_password_reset_email(
+            to_email=user.email,
+            reset_url=reset_url,
+        )
+    except Exception:
+        # Don't leave a valid reset token behind
+        # if email delivery failed.
+        user.reset_password_token = None
+        user.reset_password_expires = None
+        db.commit()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to send password reset email.",
+        )
+
+    return generic_response
+
+@router.post("/reset-password/{token}")
+def reset_password(
+    token: str,
+    data: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    token_hash = hashlib.sha256(
+        token.encode("utf-8")
+    ).hexdigest()
+
+    user = (
+        db.query(User)
+        .filter(
+            User.reset_password_token == token_hash,
+            User.reset_password_expires > datetime.utcnow(),
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired password reset link.",
+        )
+
+    password = data.password.strip()
+
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be at least 8 characters long.",
+        )
+
+    user.password_hash = hash_password(password)
+
+    # Invalidate the reset token immediately.
+    user.reset_password_token = None
+    user.reset_password_expires = None
+
+    db.commit()
+
+    return {
+        "message": "Password reset successful."
     }

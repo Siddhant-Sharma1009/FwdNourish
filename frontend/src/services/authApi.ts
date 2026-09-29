@@ -136,3 +136,38 @@ export async function changePassword(data: ChangePasswordRequest) {
 
   return response.data;
 }
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
+export async function forgotPassword(
+  email: string
+): Promise<ForgotPasswordResponse> {
+  const response = await api.post<ForgotPasswordResponse>(
+    "/auth/forgot-password",
+    {
+      email,
+    }
+  );
+
+  return response.data;
+}
+
+export async function resetPassword(
+  token: string,
+  password: string
+): Promise<ResetPasswordResponse> {
+  const response = await api.post<ResetPasswordResponse>(
+    `/auth/reset-password/${encodeURIComponent(token)}`,
+    {
+      password,
+    }
+  );
+
+  return response.data;
+}

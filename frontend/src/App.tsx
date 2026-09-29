@@ -32,7 +32,8 @@ import Login from "./pages/auth/Login";
 import TenantSignup from "./pages/auth/TenantSignup";
 import NgoSignup from "./pages/auth/NgoSignup";
 import Pending from "./pages/auth/Pending";
-
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 // ============================================================
 // ADMIN PAGES
 // ============================================================
@@ -87,6 +88,15 @@ export default function App() {
         <Route
           path="/pending"
           element={<Pending />}
+        />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+
+        <Route
+          path="/reset-password/:token"
+          element={<ResetPassword />}
         />
 
         {/* ======================================================
