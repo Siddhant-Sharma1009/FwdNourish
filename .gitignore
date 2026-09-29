@@ -114,6 +114,10 @@ backend/.env.*
 *.h5
 *.keras
 
+# Keep trained Prophet models in the repository
+!backend/artifacts/forecasting/prophet/
+!backend/artifacts/forecasting/prophet/*.pkl
+
 # =========================
 # Dataset Files
 # =========================
