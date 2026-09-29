@@ -514,30 +514,37 @@ def complete_donation(
             detail="Pickup is already completed.",
         )
 
-    if pickup.status != "READY_FOR_PICKUP":
+    if pickup.status not in {
+        "SCHEDULED",
+        "READY_FOR_PICKUP",
+    }:
         raise HTTPException(
             status_code=400,
             detail=(
-                "The donation can be marked as donated only after "
-                "the pickup is ready for pickup."
+                f"Pickup cannot be completed from its current status: "
+                f"{pickup.status}"
             ),
         )
 
     # ---------------------------------------------------------
-    # 5. Both sides must have confirmed the pickup
+    # 5. NGO must have confirmed the pickup
     # ---------------------------------------------------------
 
     if pickup.ngo_confirmation != "CONFIRMED":
         raise HTTPException(
             status_code=400,
-            detail="The NGO must confirm the pickup before donation completion.",
+            detail=(
+                "The NGO must confirm the pickup before "
+                "the donation can be completed."
+            ),
         )
 
-    if pickup.business_confirmation != "CONFIRMED":
-        raise HTTPException(
-            status_code=400,
-            detail="The business must confirm the pickup before donation completion.",
-        )
+    # ---------------------------------------------------------
+    # 6. Business completion also confirms the business side
+    # ---------------------------------------------------------
+
+    pickup.business_confirmation = "CONFIRMED"
+    pickup.confirmation_status = "CONFIRMED"
 
     # ---------------------------------------------------------
     # 6. Find inventory item
