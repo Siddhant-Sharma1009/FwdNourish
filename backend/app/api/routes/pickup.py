@@ -1162,8 +1162,8 @@ def complete_pickup(
             user_id=ngo_user.id,
             title="Pickup Completed",
             message=(
-                f"Pickup #{pickup.id} for donation "
-                f"#{donation.id} has been completed."
+                f"Pickup {pickup.id} for donation "
+                f"{donation.id} has been completed."
             ),
             notification_type="PICKUP_COMPLETED",
         )

@@ -321,7 +321,7 @@ export default function AccountReview() {
           description="Basic identity and authentication information."
         >
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <Info label="Account ID" value={`#${user.id}`} />
+            <Info label="Account ID" value={`${user.id}`} />
 
             <Info
               label="Account type"

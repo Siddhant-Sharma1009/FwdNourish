@@ -4,12 +4,7 @@ import type { Transaction } from "../types/transaction";
 import { getTransactions } from "../services/transactionApi";
 import { getExpiryStatuses } from "../services/expiryApi";
 
-/**
- * The base Transaction type in the project contains the transaction fields.
- * The backend may additionally return related inventory and donation data.
- * Keeping these fields optional makes this page compatible with both shapes
- * and prevents the UI from breaking while the backend is being updated.
- */
+
 interface InventoryDetails {
   id: number;
   tenant_id?: number;

@@ -17,12 +17,7 @@ import type { NGORequirement } from "../../types/ngoRequirement";
 const CO2E_PER_KG_FOOD = 2.5;
 const MEALS_PER_KG_FOOD = 2;
 
-type EnrichedPickup = Pickup & {
-  donation_quantity?: number | null;
-  committed_quantity?: number | null;
-  donation_unit?: string | null;
-  donation_status?: string | null;
-};
+
 
 function status(value: string | null | undefined): string {
   return (value || "").trim().toUpperCase();
@@ -130,7 +125,7 @@ export default function NGODashboard() {
   const { user } = useAuth();
 
   const [matches, setMatches] = useState<DonationMatch[]>([]);
-  const [pickups, setPickups] = useState<EnrichedPickup[]>([]);
+  const [pickups, setPickups] = useState<Pickup[]>([]);
   const [requirements, setRequirements] = useState<NGORequirement[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -194,6 +189,17 @@ export default function NGODashboard() {
     void loadDashboard(true);
   }, [loadDashboard]);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      void loadDashboard(false);
+    }, 15000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [loadDashboard]);
+
+
   const activeRequirements = useMemo(
     () =>
       requirements.filter(
@@ -223,51 +229,51 @@ export default function NGODashboard() {
     [pickups]
   );
 
- const foodDiverted = useMemo(
-  () =>
-    completedPickups.reduce((total, pickup) => {
-      const match = matches.find(
-        (item) => item.match_id === pickup.match_id
-      );
+  const foodDiverted = useMemo(
+    () =>
+      completedPickups.reduce((total, pickup) => {
+        const match = matches.find(
+          (item) => item.match_id === pickup.match_id
+        );
 
-      const committedQuantity = Number(
-        pickup.committed_quantity ?? 0
-      );
+        const committedQuantity = Number(
+          pickup.committed_quantity ?? 0
+        );
 
-      const donationQuantity = Number(
-        pickup.donation_quantity ?? 0
-      );
+        const donationQuantity = Number(
+          pickup.donation_quantity ?? 0
+        );
 
-      const matchQuantity = Number(
-        match?.available_quantity ?? 0
-      );
+        const matchQuantity = Number(
+          match?.available_quantity ?? 0
+        );
 
-      const quantity =
-        committedQuantity > 0
-          ? committedQuantity
-          : donationQuantity > 0
-          ? donationQuantity
-          : matchQuantity;
+        const quantity =
+          committedQuantity > 0
+            ? committedQuantity
+            : donationQuantity > 0
+              ? donationQuantity
+              : matchQuantity;
 
-      return total + (Number.isFinite(quantity) ? Math.max(quantity, 0) : 0);
-    }, 0),
-  [completedPickups, matches]
-);
+        return total + (Number.isFinite(quantity) ? Math.max(quantity, 0) : 0);
+      }, 0),
+    [completedPickups, matches]
+  );
 
-const co2Saved = foodDiverted * CO2E_PER_KG_FOOD;
-const mealsRedistributed = foodDiverted * MEALS_PER_KG_FOOD;
+  const co2Saved = foodDiverted * CO2E_PER_KG_FOOD;
+  const mealsRedistributed = foodDiverted * MEALS_PER_KG_FOOD;
 
-const recentPickups = useMemo(
-  () =>
-    [...pickups]
-      .sort(
-        (a, b) =>
-          new Date(b.scheduled_start || b.created_at || 0).getTime() -
-          new Date(a.scheduled_start || a.created_at || 0).getTime()
-      )
-      .slice(0, 6),
-  [pickups]
-);
+  const recentPickups = useMemo(
+    () =>
+      [...pickups]
+        .sort(
+          (a, b) =>
+            new Date(b.scheduled_start || b.created_at || 0).getTime() -
+            new Date(a.scheduled_start || a.created_at || 0).getTime()
+        )
+        .slice(0, 6),
+    [pickups]
+  );
 
   const upcomingPickups = useMemo(
     () =>
