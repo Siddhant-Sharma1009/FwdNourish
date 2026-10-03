@@ -122,7 +122,7 @@ function StatCard({
 }
 
 export default function NGODashboard() {
-  const { user } = useAuth();
+   useAuth();
 
   const [matches, setMatches] = useState<DonationMatch[]>([]);
   const [pickups, setPickups] = useState<Pickup[]>([]);

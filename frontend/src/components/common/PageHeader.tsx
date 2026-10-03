@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 interface PageHeaderProps {
   title: string;
   description?: string;
-  icon?: ReactNode;      // optional icon shown beside the title
-  actions?: ReactNode;   // buttons shown on the right
+  icon?: ReactNode;      
+  actions?: ReactNode;   
 }
 
 export default function PageHeader({

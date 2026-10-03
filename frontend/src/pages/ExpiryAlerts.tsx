@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { ExpiryStatus } from "../types/expiry";
 import { getExpiryAlerts } from "../services/expiryApi";
 import ExpiryBadge from "../components/inventory/ExpiryBadge";
-import PageHeader from "../components/common/PageHeader";
 
 function ExpiryAlerts() {
 

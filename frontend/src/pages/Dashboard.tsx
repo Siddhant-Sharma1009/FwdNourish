@@ -13,7 +13,6 @@ import { getBusinessPickups, type Pickup, } from "../services/pickupApi";
 import type { AIPrediction } from "../services/aiPredictionApi";
 import { getAIPredictions } from "../services/aiPredictionApi";
 import { calculateSustainabilityImpact } from "../utils/sustainabilityImpact";
-import PageHeader from "../components/common/PageHeader";
 
 function Dashboard() {
   const { user, loading: authLoading } = useAuth();
