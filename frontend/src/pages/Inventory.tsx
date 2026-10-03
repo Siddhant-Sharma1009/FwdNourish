@@ -153,8 +153,8 @@ function Inventory() {
       console.error("Delete inventory failed:", err);
       setError(
         err?.response?.data?.detail ||
-          err?.message ||
-          "Failed to delete inventory item."
+        err?.message ||
+        "Failed to delete inventory item."
       );
     } finally {
       setDeletingId(null);
@@ -168,7 +168,7 @@ function Inventory() {
       expiry?.status === "EXPIRED" ||
       (item.expiry_date
         ? new Date(item.expiry_date).getTime() <
-          new Date().setHours(0, 0, 0, 0)
+        new Date().setHours(0, 0, 0, 0)
         : false);
 
     return item.quantity > 0 && !isExpired;
@@ -243,28 +243,41 @@ function Inventory() {
   }
 
   return (
-    <div className="min-h-full bg-slate-100 p-4 md:p-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-full bg-slate-100 p-2 md:p-2">
+
+      <header className="px-1 pb-0 pt-3 sm:pt-0">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 md:text-3xl">
-              Inventory
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Manage and monitor your food inventory
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+              Inventory{" "}
+              <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+                Overview
+              </span>
+            </h2>
+
+            <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+              View and manage all your stock in one place.
             </p>
           </div>
 
           <button
             type="button"
             onClick={() => navigate("/inventory/add")}
-            className="w-full rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-green-600/20 transition hover:from-emerald-600 hover:to-green-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 active:scale-[0.98] sm:w-auto dark:focus-visible:ring-offset-slate-900"
           >
             + Add Inventory
           </button>
         </div>
 
+        {/* Styled divider */}
+        <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+          <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+          <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-7xl">
+       
         {/* Error Notification */}
         {error && (
           <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">

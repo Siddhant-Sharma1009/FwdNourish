@@ -334,45 +334,57 @@ export default function NGODashboard() {
 
   return (
     <div className="space-y-6 pb-8">
-      <section className="rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600 p-6 text-white shadow-lg">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-emerald-100">
-              NGO Operations Dashboard
-            </p>
-            <h1 className="text-2xl font-extrabold md:text-3xl">
-              Welcome{user?.full_name ? `, ${user.full_name}` : ""}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-emerald-50">
-              Manage requirements, incoming surplus food, pickups, and your
-              redistribution impact from one place.
-            </p>
-          </div>
+    
 
-          <div className="flex flex-wrap gap-2">
-            <Link
-              to="/ngo/requirements"
-              className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50"
-            >
-              Requirements
-            </Link>
-            <Link
-              to="/ngo/matches"
-              className="rounded-xl border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-bold text-white hover:bg-white/20"
-            >
-              View Matches
-            </Link>
-            <button
-              type="button"
-              onClick={() => void loadDashboard(false)}
-              disabled={refreshing}
-              className="rounded-xl border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-bold text-white hover:bg-white/20 disabled:opacity-60"
-            >
-              {refreshing ? "Refreshing..." : "Refresh"}
-            </button>
-          </div>
-        </div>
-      </section>
+<header className="px-1 pb-0 pt-3 sm:pt-0">
+  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+        NGO{" "}
+        <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+          Dashboard
+        </span>
+      </h2>
+
+      <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+        Receive. Distribute. Make an Impact.
+      </p>
+    </div>
+
+    <div className="flex flex-wrap gap-2">
+      <Link
+        to="/ngo/requirements"
+        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-green-600/20 transition hover:from-emerald-600 hover:to-green-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 active:scale-[0.98] dark:focus-visible:ring-offset-slate-900"
+      >
+        
+        Requirements
+      </Link>
+
+      <Link
+        to="/ngo/matches"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 active:scale-[0.98] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:focus-visible:ring-offset-slate-900"
+      >
+       
+        View Matches
+      </Link>
+
+      <button
+        type="button"
+        onClick={() => void loadDashboard(false)}
+        disabled={refreshing}
+        className="inline-flex items-center gap-1.5 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-200/70 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white dark:focus-visible:ring-offset-slate-900"
+      >
+        {refreshing ? "Refreshing..." : "Refresh"}
+      </button>
+    </div>
+  </div>
+
+  {/* Styled divider */}
+  <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+    <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+    <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+  </div>
+</header>
 
       {error && (
         <div className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:flex-row sm:items-center sm:justify-between">

@@ -228,8 +228,8 @@ function AIForecasting() {
 
       setError(
         err?.response?.data?.detail ||
-          err?.message ||
-          "Failed to start batch prediction run."
+        err?.message ||
+        "Failed to start batch prediction run."
       );
     } finally {
       setBatchRunning(false);
@@ -446,39 +446,48 @@ function AIForecasting() {
   /* ---------------------------------------------------------------------- */
 
   return (
-    <div className="min-h-full bg-slate-100 p-4 md:p-8">
+    <div className="min-h-full bg-slate-100 p-2 md:p-2">
       <div className="mx-auto max-w-7xl">
 
-        {/* Header */}
+        <header className="px-1 pb-0 pt-3 sm:pt-0">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                AI{" "}
+                <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+                  Forecasting
+                </span>
+              </h2>
 
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 md:text-3xl">
-              AI Forecasting
-            </h1>
+              <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+                Demand predictions, waste risk scoring, and reorder guidance
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRunBatchPrediction}
+              disabled={batchRunning}
+              className="w-full rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            >
+              {batchRunning ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-green-200 border-t-white" />
+                  Running prediction...
+                </span>
+              ) : (
+                "⚡ Run Batch Prediction"
+              )}
+            </button>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Demand predictions, waste risk scoring,
-              and reorder guidance
-            </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleRunBatchPrediction}
-            disabled={batchRunning}
-            className="w-full rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-          >
-            {batchRunning ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-green-200 border-t-white" />
-                Running prediction...
-              </span>
-            ) : (
-              "⚡ Run Batch Prediction"
-            )}
-          </button>
-        </div>
+          {/* Styled divider */}
+          <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+            <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+            <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+          </div>
+        </header>
+
 
         {/* Error */}
 
@@ -633,11 +642,10 @@ function AIForecasting() {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
-                className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition ${
-                  activeTab === tab.key
+                className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition ${activeTab === tab.key
                     ? "bg-green-600 text-white shadow-sm"
                     : "text-slate-600 hover:bg-slate-100"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -726,7 +734,7 @@ function AIForecasting() {
           )}
         </div>
 
-  
+
 
         {activeTab === "predictions" && (
           <DataTable
@@ -785,7 +793,7 @@ function AIForecasting() {
                 <span className="font-semibold text-blue-600">
                   {Number(
                     item.recommended_purchase_quantity ??
-                      0
+                    0
                   ).toFixed(0)}{" "}
                   units
                 </span>,
@@ -800,7 +808,7 @@ function AIForecasting() {
           />
         )}
 
-      
+
 
         {activeTab === "waste-risk" && (
           <DataTable
@@ -850,8 +858,8 @@ function AIForecasting() {
                     item.days_to_expiry <= 2
                       ? "font-semibold text-red-600"
                       : item.days_to_expiry <= 5
-                      ? "font-semibold text-orange-600"
-                      : "text-slate-600"
+                        ? "font-semibold text-orange-600"
+                        : "text-slate-600"
                   }
                 >
                   {item.days_to_expiry} days
@@ -864,8 +872,8 @@ function AIForecasting() {
                 <span>
                   {item.predicted_demand != null
                     ? `${Number(
-                        item.predicted_demand
-                      ).toFixed(1)} units/day`
+                      item.predicted_demand
+                    ).toFixed(1)} units/day`
                     : "—"}
                 </span>,
               ],
@@ -995,7 +1003,7 @@ function AIForecasting() {
 
       </div>
 
-     
+
 
       {selectedItem && (
         <ItemForecastPanel

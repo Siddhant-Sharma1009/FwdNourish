@@ -1,8 +1,6 @@
 from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app import models  
 from app.core.database import Base, engine
 from app.api.forecasting import router as forecasting_router
@@ -27,7 +25,7 @@ from app.core.scheduler import start_scheduler, stop_scheduler
 from app.core.config import settings
 
 Base.metadata.create_all(bind=engine)
-print("REGISTERED TABLES:", list(Base.metadata.tables.keys()))
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

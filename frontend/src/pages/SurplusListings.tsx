@@ -974,38 +974,27 @@ function SurplusListings() {
           HEADER
       ======================================================= */}
 
-      <div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-lg text-emerald-600">
-                ♻
-              </span>
-
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Surplus Food
-              </h1>
-            </div>
-
-            <p className="mt-2 max-w-2xl text-sm text-slate-500">
-              Publish safe, available surplus food so registered
-              NGOs can discover and schedule pickups.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-              Eligible inventory
-            </p>
-
-            <p className="mt-1 text-xl font-bold text-emerald-800">
-              {eligibleInventory.length}
-            </p>
-          </div>
-
+      <header className="px-1 pb-0 pt-3 sm:pt-0">
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+            Food{" "}
+            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+              Donations
+            </span>
+          </h2>
         </div>
-      </div>
+
+        <p className="mt-1 max-w-xxl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+        Publish safe, available surplus food so registered NGOs can discover and schedule pickups.
+        </p>
+
+        {/* Styled divider */}
+        <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+          <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+          <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+        </div>
+      </header>
+
 
 
       {/* ======================================================
@@ -1432,7 +1421,7 @@ function SurplusListings() {
           {/* ==================================================
               RECIPIENT / NOTE
           =================================================== */}
-           {/* ==================================================
+          {/* ==================================================
               LOCATION
           =================================================== */}
 
@@ -1822,7 +1811,7 @@ function SurplusListings() {
             )}
           </section>
 
-         
+
 
           {/* ==================================================
               AVAILABILITY
@@ -2034,6 +2023,9 @@ function SurplusListings() {
                   </th>
 
                   <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    Accepted By
+                  </th>
+                  <th className="px-6 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                     Quantity
                   </th>
 
@@ -2066,7 +2058,7 @@ function SurplusListings() {
                     const status =
                       listing.donation_status.toUpperCase();
 
-                
+
 
                     const listingInventory =
                       inventory.find(
@@ -2096,15 +2088,66 @@ function SurplusListings() {
                             </p>
                           )}
 
+                        </td>
 
 
-                          {listing.recipient_name && (
-                            <p className="mt-1 text-xs text-slate-500">
-                              Recipient:{" "}
-                              <span className="font-medium text-slate-700">
-                                {listing.recipient_name}
-                              </span>
-                            </p>
+                        <td className="px-6 py-4">
+
+                          {listing.ngo_name ? (
+                            <div className="min-w-[220px]">
+
+                              <div className="flex items-center gap-2">
+
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-sm">
+                                  🏢
+                                </div>
+
+                                <div className="min-w-0">
+
+                                  <p className="truncate text-sm font-bold text-slate-800">
+                                    {listing.ngo_name}
+                                  </p>
+
+                                  <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600">
+                                    Accepting NGO
+                                  </p>
+
+                                </div>
+
+                              </div>
+
+                              {listing.ngo_contact_name && (
+                                <p className="mt-2 text-xs text-slate-500">
+                                  Contact:{" "}
+                                  <span className="font-medium text-slate-700">
+                                    {listing.ngo_contact_name}
+                                  </span>
+                                </p>
+                              )}
+
+                              {listing.ngo_contact_phone && (
+                                <p className="mt-1 text-xs text-slate-500">
+                                  {listing.ngo_contact_phone}
+                                </p>
+                              )}
+
+                              {listing.pickup_scheduled_start && (
+                                <span className="mt-2 inline-flex rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700">
+                                  Pickup Scheduled
+                                </span>
+                              )}
+
+                            </div>
+                          ) : (
+                            <div>
+                              <p className="text-xs font-semibold text-amber-700">
+                                Waiting for NGO
+                              </p>
+
+                              <p className="mt-1 text-[10px] text-slate-400">
+                                No pickup scheduled yet
+                              </p>
+                            </div>
                           )}
 
                         </td>
@@ -2498,23 +2541,7 @@ function SurplusListings() {
                       </p>
                     </div>
 
-                    <div className="rounded-lg bg-slate-50 p-3">
-                      <p className="text-[10px] font-semibold uppercase text-slate-400">
-                        Latitude
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-slate-800">
-                        {detailListing.pickup_latitude ?? "—"}
-                      </p>
-                    </div>
 
-                    <div className="rounded-lg bg-slate-50 p-3">
-                      <p className="text-[10px] font-semibold uppercase text-slate-400">
-                        Longitude
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-slate-800">
-                        {detailListing.pickup_longitude ?? "—"}
-                      </p>
-                    </div>
 
                     <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
                       <p className="text-[10px] font-semibold uppercase text-slate-400">
@@ -2531,6 +2558,132 @@ function SurplusListings() {
                       </p>
                     </div>
                   </div>
+
+                  {detailListing.ngo_name ? (
+                    <>
+                      <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-lg">
+                            🏢
+                          </div>
+
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                              Accepted By
+                            </p>
+
+                            <p className="mt-1 text-base font-bold text-slate-900">
+                              {detailListing.ngo_name}
+                            </p>
+
+                            <p className="mt-0.5 text-xs text-slate-500">
+                              NGO that scheduled the pickup
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-[10px] font-semibold uppercase text-slate-400">
+                            Contact Person
+                          </p>
+
+                          <p className="mt-1 text-sm font-semibold text-slate-800">
+                            {detailListing.ngo_contact_name || "Not available"}
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg bg-slate-50 p-3">
+                          <p className="text-[10px] font-semibold uppercase text-slate-400">
+                            Phone
+                          </p>
+
+                          {detailListing.ngo_contact_phone ? (
+                            <a
+                              href={`tel:${detailListing.ngo_contact_phone}`}
+                              onClick={(event) => event.stopPropagation()}
+                              className="mt-1 block text-sm font-semibold text-emerald-700 hover:underline"
+                            >
+                              {detailListing.ngo_contact_phone}
+                            </a>
+                          ) : (
+                            <p className="mt-1 text-sm font-semibold text-slate-800">
+                              Not available
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
+                          <p className="text-[10px] font-semibold uppercase text-slate-400">
+                            Email
+                          </p>
+
+                          {detailListing.ngo_contact_email ? (
+                            <a
+                              href={`mailto:${detailListing.ngo_contact_email}`}
+                              onClick={(event) => event.stopPropagation()}
+                              className="mt-1 block truncate text-sm font-semibold text-emerald-700 hover:underline"
+                            >
+                              {detailListing.ngo_contact_email}
+                            </a>
+                          ) : (
+                            <p className="mt-1 text-sm font-semibold text-slate-800">
+                              Not available
+                            </p>
+                          )}
+                        </div>
+
+                      </div>
+
+                      {detailListing.pickup_scheduled_start && (
+                        <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
+                            Pickup Scheduled
+                          </p>
+
+                          <p className="mt-2 text-sm font-semibold text-slate-800">
+                            {new Date(
+                              detailListing.pickup_scheduled_start
+                            ).toLocaleString()}
+                          </p>
+
+                          {detailListing.pickup_scheduled_end && (
+                            <p className="mt-1 text-xs text-slate-500">
+                              Until{" "}
+                              {new Date(
+                                detailListing.pickup_scheduled_end
+                              ).toLocaleString()}
+                            </p>
+                          )}
+
+                          {detailListing.pickup_notes && (
+                            <p className="mt-2 text-xs leading-5 text-slate-600">
+                              <span className="font-semibold">
+                                Pickup note:
+                              </span>{" "}
+                              {detailListing.pickup_notes}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600">
+                        Accepting NGO
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                        No NGO has scheduled the pickup yet.
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-500">
+                        NGO information will appear here once a pickup is scheduled.
+                      </p>
+                    </div>
+                  )}
 
                   {detailListing.note && (
                     <div className="mt-4">

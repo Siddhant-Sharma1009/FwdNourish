@@ -86,7 +86,7 @@ export default function NGORequirements() {
 
       setError(
         err?.response?.data?.detail ||
-          "Failed to load NGO requirements."
+        "Failed to load NGO requirements."
       );
     } finally {
       setLoading(false);
@@ -168,7 +168,7 @@ export default function NGORequirements() {
 
       setError(
         err?.response?.data?.detail ||
-          "Failed to create food requirement."
+        "Failed to create food requirement."
       );
     } finally {
       setSubmitting(false);
@@ -196,7 +196,7 @@ export default function NGORequirements() {
 
       setError(
         err?.response?.data?.detail ||
-          "Failed to cancel requirement."
+        "Failed to cancel requirement."
       );
     }
   };
@@ -206,36 +206,45 @@ export default function NGORequirements() {
   ).length;
 
   return (
-    <div className="min-h-full bg-slate-50 px-4 py-6 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-600 text-xl shadow-sm">
-              📋
-            </div>
-
+    <div className="min-h-full bg-slate-50 px-4  sm:px-1">
+      <header className="px-1 pb-0 pt-3 sm:pt-0">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-                Food Requirements
-              </h1>
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                Food{" "}
+                <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+                  Requirenments
+                </span>
+              </h2>
 
-              <p className="mt-0.5 text-sm text-gray-500">
+              <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
                 Tell businesses what surplus food your NGO currently needs.
               </p>
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 ring-1 ring-inset ring-gray-200">
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 ring-1 ring-inset ring-gray-200">
               {requirements.length} total
             </span>
 
             <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200">
               {activeCount} active
             </span>
+            </div>
           </div>
-        </div>
+
+          {/* Styled divider */}
+          <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+            <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+            <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+          </div>
+        </header>
+     
+      <div className="mx-auto max-w-6xl">
+
+       
+
+
 
         {/* Messages */}
         {error && (

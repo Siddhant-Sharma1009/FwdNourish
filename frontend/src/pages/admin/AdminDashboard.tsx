@@ -45,7 +45,7 @@ export default function AdminDashboard() {
     } catch (e: any) {
       setError(
         e?.response?.data?.detail ||
-          "Failed to load admin data."
+        "Failed to load admin data."
       );
     }
   }
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
     } catch (e: any) {
       setError(
         e?.response?.data?.detail ||
-          "Action failed. Please try again."
+        "Action failed. Please try again."
       );
 
       closeModal();
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
     } catch (e: any) {
       setError(
         e?.response?.data?.detail ||
-          "Failed to approve account."
+        "Failed to approve account."
       );
     }
   }
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
     } catch (e: any) {
       setError(
         e?.response?.data?.detail ||
-          "Failed to reactivate account."
+        "Failed to reactivate account."
       );
     }
   }
@@ -169,19 +169,33 @@ export default function AdminDashboard() {
     <>
       <div className="space-y-6">
 
-        {/* =====================================================
-            HEADER
-        ====================================================== */}
+        <header className="px-1 pb-0 pt-3 sm:pt-0">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                Admin{" "}
+                <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+                  Dashboard
+                </span>
+              </h2>
 
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Admin Dashboard
-          </h1>
+              <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+                Review, verify and manage platform organizations.
+              </p>
+            </div>
 
-          <p className="mt-1 text-sm text-slate-500">
-            Review, verify and manage platform organizations.
-          </p>
-        </div>
+            <div className="flex flex-wrap gap-2">
+
+            </div>
+          </div>
+
+          {/* Styled divider */}
+          <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+            <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+            <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+          </div>
+        </header >
+
 
         {/* =====================================================
             SUCCESS MESSAGE
@@ -717,11 +731,10 @@ export default function AdminDashboard() {
                 type="button"
                 onClick={executeAction}
                 disabled={actionLoading}
-                className={`rounded-xl px-4 py-2.5 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                  modal === "SUSPEND"
+                className={`rounded-xl px-4 py-2.5 text-sm font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${modal === "SUSPEND"
                     ? "bg-amber-500 hover:bg-amber-600"
                     : "bg-red-600 hover:bg-red-700"
-                }`}
+                  }`}
               >
                 {actionLoading
                   ? "Processing..."
@@ -765,10 +778,9 @@ function StatusBadge({
 
   return (
     <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${
-        styles[status] ||
+      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${styles[status] ||
         "border-slate-200 bg-slate-100 text-slate-600"
-      }`}
+        }`}
     >
       {status}
     </span>

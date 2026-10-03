@@ -1,56 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-
 import type { Transaction } from "../types/transaction";
 import { getTransactions } from "../services/transactionApi";
 import { getExpiryStatuses } from "../services/expiryApi";
 
-
-interface InventoryDetails {
-  id: number;
-  tenant_id?: number;
-  sku: string;
-  name: string;
-  category_id?: number;
-  quantity?: number;
-  unit: string;
-  batch_number?: string | null;
-  purchase_date?: string | null;
-  expiry_date?: string | null;
-  expiry_threshold_days?: number;
-  is_deleted?: boolean;
-}
-
-interface DonationDetails {
-  id: number;
-  tenant_id?: number;
-  inventory_id?: number;
-  quantity?: number;
-  committed_quantity?: number;
-  remaining_quantity?: number;
-  recipient_name?: string | null;
-  pickup_location?: string | null;
-  pickup_latitude?: number | null;
-  pickup_longitude?: number | null;
-  available_from?: string | null;
-  available_until?: string | null;
-  donation_status?: string | null;
-  note?: string | null;
-  donated_at?: string | null;
-  created_at?: string | null;
-
-  // Optional fields from future/extended donation responses.
-  ngo_id?: number | null;
-  ngo_name?: string | null;
-  organization_name?: string | null;
-  receiver_name?: string | null;
-  receiver_contact?: string | null;
-  pickup_contact?: string | null;
-}
-
-type TransactionWithDetails = Transaction & {
-  inventory?: InventoryDetails | null;
-  donation?: DonationDetails | null;
-};
+// Transaction already includes the nested `inventory` and `donation` objects.
+type TransactionWithDetails = Transaction;
 
 interface TransactionDisplayGroup {
   key: string;
@@ -86,11 +40,7 @@ function Transactions() {
         getExpiryStatuses(),
       ]);
 
-      // The service still exposes Transaction[], while the backend can return
-      // the optional nested inventory/donation objects.
-      setTransactions(
-        transactionData as TransactionWithDetails[]
-      );
+      setTransactions(transactionData);
 
       const expiredItems = expiryData.filter(
         (item) => item.status === "EXPIRED"
@@ -132,26 +82,31 @@ function Transactions() {
           badge: "bg-rose-50 text-rose-700 border-rose-200",
           quantity: "text-rose-700",
         };
+
       case "PURCHASE":
         return {
           badge: "bg-blue-50 text-blue-700 border-blue-200",
           quantity: "text-blue-700",
         };
+
       case "DONATION":
         return {
           badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
           quantity: "text-emerald-700",
         };
+
       case "WASTE":
         return {
           badge: "bg-orange-50 text-orange-700 border-orange-200",
           quantity: "text-orange-700",
         };
+
       case "ADJUSTMENT":
         return {
           badge: "bg-purple-50 text-purple-700 border-purple-200",
           quantity: "text-purple-700",
         };
+
       default:
         return {
           badge: "bg-slate-50 text-slate-700 border-slate-200",
@@ -185,11 +140,9 @@ function Transactions() {
     const donation = getDonationForTransaction(transaction);
 
     return (
-      donation?.organization_name ||
       donation?.ngo_name ||
       donation?.recipient_name ||
-      donation?.receiver_name ||
-      "Recipient not specified"
+      (donation?.ngo_id ? `NGO #${donation.ngo_id}` : "Recipient not specified")
     );
   }
 
@@ -302,6 +255,7 @@ function Transactions() {
         transaction.id,
         transaction.inventory_id,
         transaction.sale_id,
+        transaction.donation_id,
         transaction.note,
         transaction.inventory?.name,
         transaction.inventory?.sku,
@@ -309,11 +263,14 @@ function Transactions() {
         transaction.inventory?.category_id,
         donation?.id,
         donation?.recipient_name,
+        donation?.ngo_id,
         donation?.ngo_name,
-        donation?.organization_name,
-        donation?.receiver_name,
+        donation?.ngo_contact_name,
+        donation?.ngo_contact_phone,
+        donation?.ngo_contact_email,
         donation?.pickup_location,
         donation?.donation_status,
+        donation?.pickup_notes,
       ];
 
       const matchesSearch =
@@ -446,32 +403,39 @@ function Transactions() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 sm:p-6">
+    <div className="min-h-screen bg-slate-100 p-4 sm:p-2">
       <div className="mx-auto w-full max-w-7xl">
-        {/* HEADER */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Transaction History
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Track sales, purchases, donations, waste, and other inventory movements.
-            </p>
+
+        <header className="px-1 pb-0 pt-3 sm:pt-0">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+              Transaction{" "}
+              <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+                History
+              </span>
+            </h2>
           </div>
 
-          <button
-            type="button"
-            onClick={loadTransactions}
-            className="w-fit rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            Refresh
-          </button>
-        </div>
+          <p className="mt-1 max-w-xxl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+            Track sales, purchases, donations, waste, and other inventory movements.
+          </p>
+
+          {/* Styled divider */}
+          <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+            <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+            <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+          </div>
+        </header>
+
+
 
         {/* ERROR */}
         {error && (
           <div className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
-            <p className="text-sm font-medium text-rose-700">{error}</p>
+            <p className="text-sm font-medium text-rose-700">
+              {error}
+            </p>
+
             <button
               type="button"
               onClick={loadTransactions}
@@ -488,9 +452,11 @@ function Transactions() {
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Total
             </p>
+
             <p className="mt-2 text-2xl font-bold text-slate-900">
               {transactions.length}
             </p>
+
             <p className="mt-1 text-xs text-slate-500">
               Transaction records
             </p>
@@ -500,29 +466,39 @@ function Transactions() {
             <p className="text-[10px] font-bold uppercase tracking-wider text-rose-500">
               Sales
             </p>
+
             <p className="mt-2 text-2xl font-bold text-rose-700">
               {saleCount}
             </p>
-            <p className="mt-1 text-xs text-slate-500">POS sales</p>
+
+            <p className="mt-1 text-xs text-slate-500">
+              POS sales
+            </p>
           </div>
 
           <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-blue-500">
               Purchases
             </p>
+
             <p className="mt-2 text-2xl font-bold text-blue-700">
               {purchaseCount}
             </p>
-            <p className="mt-1 text-xs text-slate-500">Stock received</p>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Stock received
+            </p>
           </div>
 
           <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">
               Donations
             </p>
+
             <p className="mt-2 text-2xl font-bold text-emerald-700">
               {donationCount}
             </p>
+
             <p className="mt-1 text-xs text-slate-500">
               {formatNumber(donatedQuantity)} units donated
             </p>
@@ -532,20 +508,26 @@ function Transactions() {
             <p className="text-[10px] font-bold uppercase tracking-wider text-orange-500">
               Waste
             </p>
+
             <p className="mt-2 text-2xl font-bold text-orange-700">
               {expiredCount}
             </p>
-            <p className="mt-1 text-xs text-slate-500">Expired items</p>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Expired items
+            </p>
           </div>
         </div>
 
         {/* FILTERS */}
         <div className="mb-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="grid gap-4 p-5 md:grid-cols-3">
+
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Search
               </label>
+
               <input
                 type="text"
                 value={search}
@@ -559,6 +541,7 @@ function Transactions() {
               <label className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Transaction Type
               </label>
+
               <select
                 value={typeFilter}
                 onChange={(event) => setTypeFilter(event.target.value)}
@@ -577,6 +560,7 @@ function Transactions() {
               <label className="mb-1.5 block text-xs font-semibold text-slate-700">
                 Sort
               </label>
+
               <select
                 value={sortOrder}
                 onChange={(event) => setSortOrder(event.target.value)}
@@ -593,6 +577,7 @@ function Transactions() {
               Showing {groupedTransactions.length} transaction group
               {groupedTransactions.length === 1 ? "" : "s"}
             </span>
+
             <span>
               {filteredTransactions.length} record
               {filteredTransactions.length === 1 ? "" : "s"} matched
@@ -607,9 +592,11 @@ function Transactions() {
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-400">
                 ↔
               </div>
+
               <h3 className="mt-4 text-sm font-bold text-slate-800">
                 No transactions found
               </h3>
+
               <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-slate-500">
                 No transaction matches the selected filters. If you expect a
                 donation here, make sure the donation completion flow creates a
@@ -624,21 +611,27 @@ function Transactions() {
                     <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Transaction
                     </th>
+
                     <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Item
                     </th>
+
                     <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Type
                     </th>
+
                     <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Quantity
                     </th>
+
                     <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Note
                     </th>
+
                     <th className="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Date
                     </th>
+
                     <th className="px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Action
                     </th>
@@ -652,9 +645,8 @@ function Transactions() {
                     const styles = getTypeStyle(type);
                     const quantity = getGroupQuantity(group);
                     const unit = getGroupUnit(group);
-                    const donation = getDonationForTransaction(
-                      firstTransaction
-                    );
+                    const donation =
+                      getDonationForTransaction(firstTransaction);
 
                     return (
                       <tr
@@ -672,22 +664,29 @@ function Transactions() {
                                     ? "+"
                                     : "↔"}
                             </div>
+
                             <div>
                               <p className="font-mono text-xs font-bold text-slate-800">
                                 {group.saleId
                                   ? `Sale ${group.saleId}`
                                   : `TXN ${firstTransaction.id}`}
                               </p>
+
                               {group.transactions.length > 1 && (
                                 <p className="mt-1 text-[11px] text-slate-400">
                                   {group.transactions.length} records in this sale
                                 </p>
                               )}
-                              {type === "DONATION" && donation?.id && (
-                                <p className="mt-1 text-[11px] text-emerald-600">
-                                  Donation {donation.id}
-                                </p>
-                              )}
+
+                              {type === "DONATION" &&
+                                (donation?.id ||
+                                  firstTransaction.donation_id) && (
+                                  <p className="mt-1 text-[11px] text-emerald-600">
+                                    Donation #
+                                    {donation?.id ??
+                                      firstTransaction.donation_id}
+                                  </p>
+                                )}
                             </div>
                           </div>
                         </td>
@@ -696,10 +695,10 @@ function Transactions() {
                           <p className="max-w-[230px] truncate text-sm font-bold text-slate-800">
                             {getItemName(firstTransaction)}
                           </p>
+
                           <p className="mt-1 font-mono text-[11px] text-slate-500">
                             SKU: {getItemSku(firstTransaction)}
                           </p>
-                          
                         </td>
 
                         <td className="px-5 py-4 align-top">
@@ -708,7 +707,6 @@ function Transactions() {
                           >
                             {type}
                           </span>
-                          
                         </td>
 
                         <td className="px-5 py-4 align-top">
@@ -718,25 +716,54 @@ function Transactions() {
                             {getQuantityPrefix(type)}
                             {formatNumber(quantity)}
                           </p>
+
                           <p className="mt-1 text-[11px] text-slate-400">
                             {unit}
                           </p>
                         </td>
 
                         <td className="max-w-[300px] px-5 py-4 align-top">
-                          {type === "DONATION" && donation ? (
-                            <>
-                              <p className="text-xs font-semibold text-slate-800">
-                                Recipient: {getRecipientName(firstTransaction)}
-                              </p>
-                              {donation.pickup_location && (
-                                <p className="mt-1 truncate text-[11px] text-slate-500">
-                                  Pickup: {donation.pickup_location}
+                          {type === "DONATION" ? (
+                            donation ? (
+                              <>
+                                <p className="text-xs font-semibold text-slate-800">
+                                  NGO: {getRecipientName(firstTransaction)}
                                 </p>
-                              )}
-                              
-                    
-                            </>
+
+                                {donation.ngo_contact_name && (
+                                  <p className="mt-1 truncate text-[11px] text-slate-500">
+                                    Contact: {donation.ngo_contact_name}
+                                  </p>
+                                )}
+
+                                {donation.ngo_contact_phone && (
+                                  <p className="mt-1 truncate text-[11px] text-slate-500">
+                                    Phone: {donation.ngo_contact_phone}
+                                  </p>
+                                )}
+
+                                {donation.pickup_location && (
+                                  <p className="mt-1 truncate text-[11px] text-slate-500">
+                                    Pickup: {donation.pickup_location}
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <div>
+                                <p className="text-xs font-semibold text-amber-700">
+                                  Donation recorded
+                                </p>
+
+                                <p className="mt-1 text-[11px] text-slate-500">
+                                  Donation ID:{" "}
+                                  {firstTransaction.donation_id ?? "—"}
+                                </p>
+
+                                <p className="mt-1 text-[10px] text-amber-600">
+                                  NGO details were not returned by the API.
+                                </p>
+                              </div>
+                            )
                           ) : (
                             <p className="line-clamp-2 text-xs text-slate-600">
                               {firstTransaction.note || "No note provided"}
@@ -748,6 +775,7 @@ function Transactions() {
                           <p className="text-xs font-semibold text-slate-700">
                             {formatDate(group.createdAt)}
                           </p>
+
                           <p className="mt-1 text-[11px] text-slate-400">
                             {formatTime(group.createdAt)}
                           </p>
@@ -783,6 +811,7 @@ function Transactions() {
           }}
         >
           <div className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+
             {/* MODAL HEADER */}
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
               <div>
@@ -790,17 +819,16 @@ function Transactions() {
                   <h2 className="text-lg font-bold text-slate-900">
                     Transaction Details
                   </h2>
+
                   <span
-                    className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${getTypeStyle(selectedGroup.transactionType).badge}`}
+                    className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${getTypeStyle(
+                      selectedGroup.transactionType
+                    ).badge}`}
                   >
                     {selectedGroup.transactionType}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-slate-500">
-                  {selectedGroup.saleId
-                    ? `Sale ID: ${selectedGroup.saleId}`
-                    : `${selectedGroup.transactions.length} transaction record${selectedGroup.transactions.length === 1 ? "" : "s"}`}
-                </p>
+
               </div>
 
               <button
@@ -833,6 +861,7 @@ function Transactions() {
                           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Transaction ID
                           </p>
+
                           <p className="mt-1 font-mono text-sm font-bold text-slate-800">
                             {transaction.id}
                           </p>
@@ -851,9 +880,13 @@ function Transactions() {
                           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Quantity
                           </p>
-                          <p className={`mt-1 text-sm font-bold ${styles.quantity}`}>
+
+                          <p
+                            className={`mt-1 text-sm font-bold ${styles.quantity}`}
+                          >
                             {getQuantityPrefix(type)}
-                            {formatNumber(transaction.quantity)} {getItemUnit(transaction)}
+                            {formatNumber(transaction.quantity)}{" "}
+                            {getItemUnit(transaction)}
                           </p>
                         </div>
 
@@ -861,6 +894,7 @@ function Transactions() {
                           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Inventory ID
                           </p>
+
                           <p className="mt-1 font-mono text-sm font-semibold text-slate-700">
                             {transaction.inventory_id}
                           </p>
@@ -870,18 +904,22 @@ function Transactions() {
                           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Created At
                           </p>
+
                           <p className="mt-1 text-sm font-semibold text-slate-700">
                             {formatDateTime(transaction.created_at)}
                           </p>
                         </div>
 
-                        {transaction.sale_id && (
-                          <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                              Sale ID
+
+
+                        {transaction.donation_id && (
+                          <div className="rounded-lg bg-emerald-50 p-3 sm:col-span-2 lg:col-span-3">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                              Donation ID
                             </p>
-                            <p className="mt-1 break-all font-mono text-sm font-semibold text-slate-700">
-                              {transaction.sale_id}
+
+                            <p className="mt-1 font-mono text-sm font-semibold text-emerald-800">
+                              {transaction.donation_id}
                             </p>
                           </div>
                         )}
@@ -891,13 +929,13 @@ function Transactions() {
                       <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+
+
+                            <h2 className="mt-1 text-base font-bold text-slate-900">
                               Item Information
-                            </p>
-                            <h3 className="mt-1 text-base font-bold text-slate-900">
-                              {getItemName(transaction)}
-                            </h3>
+                            </h2>
                           </div>
+
                           <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-500 ring-1 ring-slate-200">
                             Inventory {transaction.inventory_id}
                           </span>
@@ -909,6 +947,7 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 Product
                               </p>
+
                               <p className="mt-1 text-sm font-bold text-slate-800">
                                 {inventory.name}
                               </p>
@@ -918,6 +957,7 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 SKU
                               </p>
+
                               <p className="mt-1 font-mono text-sm font-semibold text-slate-700">
                                 {inventory.sku || "—"}
                               </p>
@@ -927,6 +967,7 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 Unit
                               </p>
+
                               <p className="mt-1 text-sm font-semibold text-slate-700">
                                 {inventory.unit || "—"}
                               </p>
@@ -936,6 +977,7 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 Category ID
                               </p>
+
                               <p className="mt-1 text-sm font-semibold text-slate-700">
                                 {inventory.category_id ?? "—"}
                               </p>
@@ -945,6 +987,7 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 Batch Number
                               </p>
+
                               <p className="mt-1 text-sm font-semibold text-slate-700">
                                 {inventory.batch_number || "—"}
                               </p>
@@ -954,8 +997,10 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 Current Stock
                               </p>
+
                               <p className="mt-1 text-sm font-semibold text-slate-700">
-                                {inventory.quantity !== undefined
+                                {inventory.quantity !== undefined &&
+                                  inventory.quantity !== null
                                   ? `${formatNumber(inventory.quantity)} ${inventory.unit}`
                                   : "—"}
                               </p>
@@ -965,6 +1010,7 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 Purchase Date
                               </p>
+
                               <p className="mt-1 text-sm font-semibold text-slate-700">
                                 {formatDate(inventory.purchase_date)}
                               </p>
@@ -974,6 +1020,7 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 Expiry Date
                               </p>
+
                               <p className="mt-1 text-sm font-semibold text-slate-700">
                                 {formatDate(inventory.expiry_date)}
                               </p>
@@ -983,6 +1030,7 @@ function Transactions() {
                               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 Inventory Status
                               </p>
+
                               <p className="mt-1 text-sm font-semibold text-slate-700">
                                 {inventory.is_deleted ? "Deleted" : "Active"}
                               </p>
@@ -993,8 +1041,9 @@ function Transactions() {
                             <p className="text-xs font-semibold text-amber-800">
                               Detailed inventory information was not returned by the API.
                             </p>
+
                             <p className="mt-1 text-[11px] leading-5 text-amber-700">
-                              Inventory ID: #{transaction.inventory_id}
+                              Inventory ID: {transaction.inventory_id}
                             </p>
                           </div>
                         )}
@@ -1014,11 +1063,13 @@ function Transactions() {
                                   <p className="text-sm font-bold text-emerald-900">
                                     Donation Information
                                   </p>
-                                  {donation?.id && (
-                                    <p className="mt-1 text-[11px] text-emerald-700">
-                                      Donation #{donation.id}
-                                    </p>
-                                  )}
+
+                                  <p className="mt-1 text-[11px] text-emerald-700">
+                                    Donation
+                                    {donation?.id ??
+                                      transaction.donation_id ??
+                                      "—"}
+                                  </p>
                                 </div>
 
                                 <span className="w-fit rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase text-emerald-700 ring-1 ring-emerald-200">
@@ -1026,24 +1077,126 @@ function Transactions() {
                                 </span>
                               </div>
 
+                              {/* IMPORTANT:
+                                  Always show NGO section for DONATION.
+                                  Previously this was hidden when all NGO fields
+                                  were empty. */}
+                              <div className="mt-4 rounded-xl border border-emerald-200 bg-white p-4">
+                                <div className="flex items-start gap-3">
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-lg">
+                                    🏢
+                                  </div>
+
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                                      Recipient NGo
+                                    </p>
+
+                                    <p className="mt-1 text-base font-bold text-slate-900">
+                                      {donation?.ngo_name}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {donation && (
+                                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div className="rounded-lg bg-slate-50 p-3">
+                                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                        Contact Person
+                                      </p>
+
+                                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                                        {donation.ngo_contact_name || "Not available"}
+                                      </p>
+                                    </div>
+
+                                    {/* PHONE */}
+                                    <div className="rounded-lg bg-slate-50 p-3">
+                                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                        Phone
+                                      </p>
+
+                                      {donation.ngo_contact_phone ? (
+                                        <a
+                                          href={`tel:${donation.ngo_contact_phone}`}
+                                          className="mt-1 block text-sm font-semibold text-emerald-700 hover:underline"
+                                        >
+                                          {donation.ngo_contact_phone}
+                                        </a>
+                                      ) : (
+                                        <p className="mt-1 text-sm font-semibold text-slate-800">
+                                          Not available
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    {/* EMAIL */}
+                                    <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
+                                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                        Email
+                                      </p>
+
+                                      {donation.ngo_contact_email ? (
+                                        <a
+                                          href={`mailto:${donation.ngo_contact_email}`}
+                                          className="mt-1 block break-all text-sm font-semibold text-emerald-700 hover:underline"
+                                        >
+                                          {donation.ngo_contact_email}
+                                        </a>
+                                      ) : (
+                                        <p className="mt-1 text-sm font-semibold text-slate-800">
+                                          Not available
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    {/* NGO NOTES */}
+                                    <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
+                                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                        NGO Notes
+                                      </p>
+
+                                      <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-800">
+                                        {donation.pickup_notes ||
+                                          "No notes from the NGO"}
+                                      </p>
+                                    </div>
+
+                                    {/* SCHEDULED PICKUP */}
+                                    {(donation.pickup_scheduled_start ||
+                                      donation.pickup_scheduled_end) && (
+                                        <div className="rounded-lg bg-slate-50 p-3 sm:col-span-2">
+                                          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                            Scheduled Pickup
+                                          </p>
+
+                                          <p className="mt-1 text-sm font-semibold text-slate-800">
+                                            {formatDateTime(
+                                              donation.pickup_scheduled_start
+                                            )}{" "}
+                                            –{" "}
+                                            {formatDateTime(
+                                              donation.pickup_scheduled_end
+                                            )}
+                                          </p>
+                                        </div>
+                                      )}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* DONATION DETAILS */}
                               {donation ? (
                                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                   <div className="rounded-lg bg-white/70 p-3">
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                                      Recipient / NGO
-                                    </p>
-                                    <p className="mt-1 text-sm font-bold text-slate-800">
-                                      {getRecipientName(transaction)}
-                                    </p>
-                                  </div>
-
-                                  <div className="rounded-lg bg-white/70 p-3">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
                                       Donation Quantity
                                     </p>
+
                                     <p className="mt-1 text-sm font-bold text-slate-800">
                                       {formatNumber(
-                                        donation.quantity ?? transaction.quantity
+                                        donation.quantity ??
+                                        transaction.quantity
                                       )}{" "}
                                       {getItemUnit(transaction)}
                                     </p>
@@ -1053,8 +1206,12 @@ function Transactions() {
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
                                       Committed Quantity
                                     </p>
+
                                     <p className="mt-1 text-sm font-semibold text-slate-700">
-                                      {formatNumber(donation.committed_quantity)} {getItemUnit(transaction)}
+                                      {formatNumber(
+                                        donation.committed_quantity
+                                      )}{" "}
+                                      {getItemUnit(transaction)}
                                     </p>
                                   </div>
 
@@ -1062,84 +1219,59 @@ function Transactions() {
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
                                       Remaining Quantity
                                     </p>
+
                                     <p className="mt-1 text-sm font-semibold text-slate-700">
-                                      {formatNumber(donation.remaining_quantity)} {getItemUnit(transaction)}
+                                      {formatNumber(
+                                        donation.remaining_quantity
+                                      )}{" "}
+                                      {getItemUnit(transaction)}
                                     </p>
                                   </div>
-
-                                  <div className="rounded-lg bg-white/70 p-3 sm:col-span-2">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                                      Pickup Location
-                                    </p>
-                                    <p className="mt-1 text-sm font-semibold text-slate-700">
-                                      {donation.pickup_location || "Not specified"}
-                                    </p>
-                                    {(donation.pickup_latitude !== null &&
-                                      donation.pickup_latitude !== undefined) &&
-                                      (donation.pickup_longitude !== null &&
-                                        donation.pickup_longitude !== undefined) && (
-                                        <p className="mt-1 font-mono text-[10px] text-slate-400">
-                                          {donation.pickup_latitude}, {donation.pickup_longitude}
-                                        </p>
-                                      )}
-                                  </div>
-
-                                  <div className="rounded-lg bg-white/70 p-3">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                                      Available From
-                                    </p>
-                                    <p className="mt-1 text-sm font-semibold text-slate-700">
-                                      {formatDateTime(donation.available_from)}
-                                    </p>
-                                  </div>
-
-                                  <div className="rounded-lg bg-white/70 p-3">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                                      Available Until
-                                    </p>
-                                    <p className="mt-1 text-sm font-semibold text-slate-700">
-                                      {formatDateTime(donation.available_until)}
-                                    </p>
-                                  </div>
-
-                                  {donation.receiver_name && (
-                                    <div className="rounded-lg bg-white/70 p-3">
-                                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                                        Receiver
-                                      </p>
-                                      <p className="mt-1 text-sm font-semibold text-slate-700">
-                                        {donation.receiver_name}
-                                      </p>
-                                    </div>
-                                  )}
-
-                                  {(donation.receiver_contact || donation.pickup_contact) && (
-                                    <div className="rounded-lg bg-white/70 p-3">
-                                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                                        Pickup Contact
-                                      </p>
-                                      <p className="mt-1 text-sm font-semibold text-slate-700">
-                                        {donation.receiver_contact || donation.pickup_contact}
-                                      </p>
-                                    </div>
-                                  )}
 
                                   {donation.donated_at && (
                                     <div className="rounded-lg bg-white/70 p-3">
                                       <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
                                         Donated At
                                       </p>
+
                                       <p className="mt-1 text-sm font-semibold text-slate-700">
-                                        {formatDateTime(donation.donated_at)}
+                                        {formatDateTime(
+                                          donation.donated_at
+                                        )}
                                       </p>
                                     </div>
                                   )}
+
+                                  <div className="rounded-lg bg-white/70 p-3 sm:col-span-2">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                                      Pickup Location
+                                    </p>
+
+                                    <p className="mt-1 text-sm font-semibold text-slate-700">
+                                      {donation.pickup_location ||
+                                        "Not specified"}
+                                    </p>
+
+                                    {donation.pickup_latitude !== null &&
+                                      donation.pickup_latitude !== undefined &&
+                                      donation.pickup_longitude !== null &&
+                                      donation.pickup_longitude !== undefined && (
+                                        <p className="mt-1 font-mono text-[10px] text-slate-400">
+                                          {donation.pickup_latitude},{" "}
+                                          {donation.pickup_longitude}
+                                        </p>
+                                      )}
+                                  </div>
+
+
+
 
                                   {donation.note && (
                                     <div className="rounded-lg bg-white/70 p-3 sm:col-span-2">
                                       <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
                                         Donation Note
                                       </p>
+
                                       <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
                                         {donation.note}
                                       </p>
@@ -1149,10 +1281,14 @@ function Transactions() {
                               ) : (
                                 <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
                                   <p className="text-xs font-semibold text-amber-800">
-                                    This transaction is marked as a donation, but detailed donation data was not returned by the API.
+                                    This transaction is marked as a donation,
+                                    but detailed donation data was not returned
+                                    by the API.
                                   </p>
+
                                   <p className="mt-1 text-[11px] leading-5 text-amber-700">
-                                    The page can show the donation details automatically once the transaction response contains the related donation object.
+                                    Donation ID:{" "}
+                                    {transaction.donation_id ?? "Not available"}
                                   </p>
                                 </div>
                               )}
@@ -1161,15 +1297,7 @@ function Transactions() {
                         </div>
                       )}
 
-                      {/* NOTE */}
-                      <div className="mt-5 border-t border-slate-100 pt-4">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Transaction Note
-                        </p>
-                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-600">
-                          {transaction.note || "No note provided"}
-                        </p>
-                      </div>
+
                     </div>
                   );
                 })}

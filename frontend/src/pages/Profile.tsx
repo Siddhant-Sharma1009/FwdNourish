@@ -11,24 +11,18 @@ import {
 export default function Profile() {
     const navigate = useNavigate();
     const { user, refreshUser } = useAuth();
-
     const [profile, setProfile] = useState<CompleteProfile | null>(null);
-
     const [fullName, setFullName] = useState("");
     const [phone, setPhone] = useState("");
-
     const [originalFullName, setOriginalFullName] = useState("");
     const [originalPhone, setOriginalPhone] = useState("");
-
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-
     const [changingPassword, setChangingPassword] = useState(false);
     const [passwordSuccess, setPasswordSuccess] = useState("");
     const [passwordError, setPasswordError] = useState("");

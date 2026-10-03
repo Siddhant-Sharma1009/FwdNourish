@@ -1,12 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-
 import { useAuth } from "../../context/AuthContext";
-
-import {
-  getNGOMatches,
-  type DonationMatch,
-} from "../../services/donationMatchApi";
-
+import { getNGOMatches, type DonationMatch, } from "../../services/donationMatchApi";
 import { schedulePickup } from "../../services/pickupApi";
 
 interface ScheduleForm {
@@ -33,20 +27,7 @@ function formatDateTime(value: string | null) {
   return date.toLocaleString();
 }
 
-// FIX: this previously used date.toISOString().split("T")[0], which
-// returns the date in UTC. getTimeInput (below) has always returned
-// the time in the browser's LOCAL timezone. Mixing a UTC date with a
-// local time meant that, for any user not in UTC (e.g. UTC+5:30),
-// the pre-filled date and time in the schedule modal did not
-// actually correspond to the same instant as match.available_from.
-// That mismatched value was then used to build `scheduledStart`,
-// which frequently failed the "must be within the donor's
-// availability window" check even when the visible date/time looked
-// correct - the schedule pickup submission would fail even though
-// nothing looked wrong on screen. Using local date components here
-// makes getDateInput and getTimeInput consistent with each other and
-// with how `scheduledStart` / `scheduledEnd` are reconstructed on
-// submit.
+
 function getDateInput(value: string | null) {
   if (!value) return "";
 
@@ -304,6 +285,16 @@ export default function NGOMatches() {
     });
 
   // ============================================================
+  // MATCH LIST CONTROLS (display only)
+  // ============================================================
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [distanceFilter, setDistanceFilter] = useState("ALL");
+  const [scoreFilter, setScoreFilter] = useState("ALL");
+  const [selectedMatch, setSelectedMatch] = useState<DonationMatch | null>(null);
+
+  // ============================================================
   // LOAD MATCHES
   // ============================================================
 
@@ -323,7 +314,7 @@ export default function NGOMatches() {
 
       setError(
         err?.response?.data?.detail ||
-          "Failed to load matched surplus listings."
+        "Failed to load matched surplus listings."
       );
     } finally {
       setLoading(false);
@@ -596,7 +587,7 @@ export default function NGOMatches() {
 
       setScheduleError(
         err?.response?.data?.detail ||
-          "Failed to schedule pickup."
+        "Failed to schedule pickup."
       );
     } finally {
       setScheduleLoading(false);
@@ -696,7 +687,7 @@ export default function NGOMatches() {
   }
 
   // ============================================================
-  // DERIVED SUMMARY (display only)
+  // DERIVED SUMMARY + FILTERING
   // ============================================================
 
   const openCount = matches.filter(
@@ -707,51 +698,117 @@ export default function NGOMatches() {
     ? Math.max(...matches.map((m) => m.match_score))
     : 0;
 
+  // Keep this flexible so the UI works with whichever timestamp the
+  // backend currently exposes. Newest matched donations appear first.
+  const getMatchTimestamp = (match: DonationMatch) => {
+    const item = match as DonationMatch & {
+      created_at?: string | null;
+      matched_at?: string | null;
+      createdAt?: string | null;
+      matchedAt?: string | null;
+      donation_created_at?: string | null;
+      donationCreatedAt?: string | null;
+    };
+
+    const value =
+      item.matched_at ||
+      item.created_at ||
+      item.matchedAt ||
+      item.createdAt ||
+      item.donation_created_at ||
+      item.donationCreatedAt ||
+      match.available_from;
+
+    const time = value ? new Date(value).getTime() : 0;
+    return Number.isNaN(time) ? 0 : time;
+  };
+
+  const filteredMatches = [...matches]
+    .sort((a, b) => getMatchTimestamp(b) - getMatchTimestamp(a))
+    .filter((match) => {
+      const query = searchTerm.trim().toLowerCase();
+
+      const matchesSearch =
+        !query ||
+        match.food_name.toLowerCase().includes(query) ||
+        (match.donor_organization_name || "").toLowerCase().includes(query) ||
+        (match.pickup_location || "").toLowerCase().includes(query);
+
+      const matchesStatus =
+        statusFilter === "ALL" || match.status === statusFilter;
+
+      const matchesDistance =
+        distanceFilter === "ALL" ||
+        (match.distance_km !== null &&
+          match.distance_km !== undefined &&
+          (distanceFilter === "10"
+            ? match.distance_km <= 10
+            : distanceFilter === "25"
+              ? match.distance_km <= 25
+              : distanceFilter === "50"
+                ? match.distance_km <= 50
+                : true));
+
+      const matchesScore =
+        scoreFilter === "ALL" ||
+        (scoreFilter === "80"
+          ? match.match_score >= 80
+          : scoreFilter === "60"
+            ? match.match_score >= 60
+            : scoreFilter === "40"
+              ? match.match_score >= 40
+              : true);
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDistance &&
+        matchesScore
+      );
+    });
+
+  const hasActiveFilters =
+    searchTerm.trim() ||
+    statusFilter !== "ALL" ||
+    distanceFilter !== "ALL" ||
+    scoreFilter !== "ALL";
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("ALL");
+    setDistanceFilter("ALL");
+    setScoreFilter("ALL");
+  };
+
   // ============================================================
   // MAIN PAGE
   // ============================================================
 
   return (
-    <div className="min-h-full bg-slate-50 px-4 py-6 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        {/* ======================================================
-            HEADER
-        ====================================================== */}
+    <div className="min-h-full bg-slate-50 px-2 py-0 sm:px-6">
+      <header className="px-1 pb-0 pt-3 sm:pt-0">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+              Donation{" "}
+              <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+                Matches
+              </span>
+            </h2>
 
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-600 text-xl shadow-sm">
-              🤝
-            </div>
-
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-                NGO Matches
-              </h1>
-
-              <p className="mt-0.5 text-sm text-gray-500">
-                Surplus food listings matched with your requirements.
-              </p>
-            </div>
+            <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+              Surplus food listings matched with your requirements.
+            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {matches.length > 0 && (
-              <>
-                <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 ring-1 ring-inset ring-gray-200">
-                  {matches.length}{" "}
-                  {matches.length === 1 ? "match" : "matches"}
-                </span>
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 ring-1 ring-inset ring-gray-200">
+              {matches.length} {matches.length === 1 ? "match" : "matches"}
+            </span>
 
-                <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">
-                  {openCount} ready to schedule
-                </span>
-
-                <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-200">
-                  Best match {bestScore.toFixed(0)}%
-                </span>
-              </>
-            )}
+            <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-200">
+              {openCount} ready to schedule
+            </span>
 
             <button
               type="button"
@@ -762,6 +819,110 @@ export default function NGOMatches() {
             </button>
           </div>
         </div>
+
+        <div className="relative mb-4 mt-4 sm:mb-5 sm:mt-5">
+          <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+          <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-6xl">
+        {/* ======================================================
+            FILTERS
+        ====================================================== */}
+
+        <section className="mb-5 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
+          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-gray-900">Find a donation</h3>
+              <p className="text-xs text-gray-500">
+                Newest matched donations are shown first.
+              </p>
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="self-start text-xs font-semibold text-green-700 hover:text-green-800 sm:self-auto"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="relative sm:col-span-2 lg:col-span-1">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                🔎
+              </span>
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Food, donor or location"
+                className={`${inputClass} pl-9`}
+                aria-label="Search donations"
+              />
+            </div>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className={inputClass}
+              aria-label="Filter by status"
+            >
+              <option value="ALL">All statuses</option>
+              <option value="SUGGESTED">Suggested</option>
+              <option value="ACCEPTED">Accepted</option>
+              <option value="PICKUP_SCHEDULED">Pickup scheduled</option>
+              <option value="READY_FOR_PICKUP">Ready for pickup</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+
+            <select
+              value={distanceFilter}
+              onChange={(e) => setDistanceFilter(e.target.value)}
+              className={inputClass}
+              aria-label="Filter by distance"
+            >
+              <option value="ALL">Any distance</option>
+              <option value="10">Within 10 km</option>
+              <option value="25">Within 25 km</option>
+              <option value="50">Within 50 km</option>
+            </select>
+
+            <select
+              value={scoreFilter}
+              onChange={(e) => setScoreFilter(e.target.value)}
+              className={inputClass}
+              aria-label="Filter by match score"
+            >
+              <option value="ALL">Any match score</option>
+              <option value="80">80%+ match</option>
+              <option value="60">60%+ match</option>
+              <option value="40">40%+ match</option>
+            </select>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+            <span>
+              Showing{" "}
+              <span className="font-semibold text-gray-700">
+                {filteredMatches.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold text-gray-700">
+                {matches.length}
+              </span>{" "}
+              matches
+            </span>
+            <span className="hidden sm:inline">
+              Highest match: {bestScore.toFixed(0)}%
+            </span>
+          </div>
+        </section>
 
         {/* ======================================================
             EMPTY STATE
@@ -778,101 +939,189 @@ export default function NGOMatches() {
             </h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
-              No surplus food listings currently match your
-              active NGO requirements.
+              No surplus food listings currently match your active NGO requirements.
             </p>
+          </div>
+        ) : filteredMatches.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-2xl">
+              🔍
+            </div>
+            <h2 className="mt-3 text-lg font-bold text-gray-900">
+              No donations match your filters
+            </h2>
+            <p className="mx-auto mt-1 max-w-md text-sm text-gray-500">
+              Try changing the status, distance, score, or search term.
+            </p>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-4 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+            >
+              Clear filters
+            </button>
           </div>
         ) : (
           /* ====================================================
-             MATCH CARDS
+             COMPACT MATCH CARDS
           ==================================================== */
 
-          <div className="space-y-5">
-            {matches.map((match) => (
+          <div className="space-y-3">
+            {filteredMatches.map((match, index) => (
               <article
                 key={match.match_id}
-                className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+                className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:border-gray-300 hover:shadow-md"
               >
-                {/* ---------------- CARD HEADER ---------------- */}
-
-                <header className="flex items-center gap-4 px-5 py-4 sm:px-6">
-                  <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-50 text-2xl ring-1 ring-inset ring-green-100 sm:flex">
-                    🍲
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                      <h2 className="text-lg font-bold leading-tight text-gray-900">
-                        {match.food_name}
-                      </h2>
-
-                      <StatusPill status={match.status} />
+                <div className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:px-5">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-xl ring-1 ring-inset ring-green-100 sm:flex">
+                      🍲
                     </div>
 
-                    <p className="mt-1 text-sm text-gray-500">
-                      Donation #{match.donation_id}, matched against
-                      your food requirement
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="truncate text-base font-bold text-gray-900">
+                          {match.food_name}
+                        </h2>
+                        <StatusPill status={match.status} />
+                        {index === 0 && !hasActiveFilters && (
+                          <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700 ring-1 ring-inset ring-amber-200">
+                            RECENT
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                        <span>
+                          {match.donor_organization_name || "Donor unavailable"}
+                        </span>
+                        <span className="hidden text-gray-300 sm:inline">•</span>
+                        <span>
+                          {match.distance_km !== null &&
+                          match.distance_km !== undefined
+                            ? `${match.distance_km.toFixed(1)} km away`
+                            : "Distance unavailable"}
+                        </span>
+                        <span className="hidden text-gray-300 sm:inline">•</span>
+                        <span>
+                          {match.available_quantity} {match.required_unit} available
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  <ScoreRing score={match.match_score} />
-                </header>
+                  <div className="flex items-center justify-between gap-3 sm:justify-end">
+                    <ScoreRing score={match.match_score} />
 
-                {/* ---------------- CARD BODY ---------------- */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMatch(match)}
+                      className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-xs font-bold text-gray-700 shadow-sm transition hover:border-gray-400 hover:bg-gray-50"
+                    >
+                      View details
+                    </button>
 
-                <div className="grid gap-5 border-t border-gray-100 px-5 py-5 sm:px-6 lg:grid-cols-5">
-                  {/* LEFT: donor, location, note */}
+                    <button
+                      type="button"
+                      onClick={() => openScheduleModal(match)}
+                      disabled={match.status !== "SUGGESTED"}
+                      className="hidden rounded-xl bg-green-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300 sm:inline-flex"
+                    >
+                      {match.status === "SUGGESTED"
+                        ? "Schedule"
+                        : match.status === "ACCEPTED"
+                          ? "Accepted"
+                          : "Scheduled"}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
 
+        {/* =========================================================
+            MATCH DETAILS MODAL
+        ========================================================= */}
+
+        {selectedMatch && (
+          <div
+            className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Donation match details"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setSelectedMatch(null);
+            }}
+          >
+            <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+              <div className="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 px-5 py-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="truncate text-lg font-bold text-gray-900">
+                      {selectedMatch.food_name}
+                    </h2>
+                    <StatusPill status={selectedMatch.status} />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Donation #{selectedMatch.donation_id} ·{" "}
+                    {selectedMatch.donor_organization_name || "Donor unavailable"}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedMatch(null)}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-2xl text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                  aria-label="Close details"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="overflow-y-auto px-5 py-5">
+                <div className="grid gap-4 lg:grid-cols-5">
                   <div className="space-y-4 lg:col-span-3">
-                    {/* Donor */}
                     <section className="rounded-xl border border-gray-200 p-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-lg ring-1 ring-inset ring-emerald-100">
                           🏢
                         </div>
-
                         <div className="min-w-0">
                           <p className="text-xs font-medium text-emerald-700">
                             Donating organization
                           </p>
-
                           <h3 className="truncate text-base font-bold text-gray-900">
-                            {match.donor_organization_name ||
+                            {selectedMatch.donor_organization_name ||
                               "Business organization not available"}
                           </h3>
                         </div>
                       </div>
 
                       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <ContactRow
-                          icon="👤"
-                          label="Contact person"
-                        >
-                          {match.donor_owner_name ||
-                            "Not available"}
+                        <ContactRow icon="👤" label="Contact person">
+                          {selectedMatch.donor_owner_name || "Not available"}
                         </ContactRow>
-
                         <ContactRow icon="📞" label="Phone">
-                          {match.donor_owner_phone ? (
+                          {selectedMatch.donor_owner_phone ? (
                             <a
-                              href={`tel:${match.donor_owner_phone}`}
+                              href={`tel:${selectedMatch.donor_owner_phone}`}
                               className="text-blue-600 hover:underline"
                             >
-                              {match.donor_owner_phone}
+                              {selectedMatch.donor_owner_phone}
                             </a>
                           ) : (
                             "Not available"
                           )}
                         </ContactRow>
-
                         <div className="sm:col-span-2">
                           <ContactRow icon="✉️" label="Email">
-                            {match.donor_owner_email ? (
+                            {selectedMatch.donor_owner_email ? (
                               <a
-                                href={`mailto:${match.donor_owner_email}`}
+                                href={`mailto:${selectedMatch.donor_owner_email}`}
                                 className="text-blue-600 hover:underline"
                               >
-                                {match.donor_owner_email}
+                                {selectedMatch.donor_owner_email}
                               </a>
                             ) : (
                               "Not available"
@@ -882,106 +1131,85 @@ export default function NGOMatches() {
                       </div>
                     </section>
 
-                    {/* Location */}
-                    <section className="flex flex-col gap-3 rounded-xl border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-base ring-1 ring-inset ring-rose-100">
+                    <section className="rounded-xl border border-gray-200 p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-base">
                           📍
                         </span>
-
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="text-xs font-medium text-gray-500">
                             Pickup location
                           </p>
-
                           <p className="mt-0.5 text-sm font-semibold leading-5 text-gray-900">
-                            {match.pickup_location ||
-                              match.donor_address ||
+                            {selectedMatch.pickup_location ||
+                              selectedMatch.donor_address ||
                               "Location not available"}
                           </p>
-
-                          {match.donor_address &&
-                            match.pickup_location &&
-                            match.donor_address !==
-                              match.pickup_location && (
-                              <p className="mt-1 text-xs text-gray-500">
-                                Donor address:{" "}
-                                {match.donor_address}
-                              </p>
-                            )}
-
-                          {match.distance_km !== null &&
-                            match.distance_km !== undefined && (
+                          {selectedMatch.distance_km !== null &&
+                            selectedMatch.distance_km !== undefined && (
                               <p className="mt-1 text-xs text-gray-500">
                                 About{" "}
                                 <span className="font-semibold text-gray-700">
-                                  {match.distance_km.toFixed(1)} km
+                                  {selectedMatch.distance_km.toFixed(1)} km
                                 </span>{" "}
                                 from your NGO
                               </p>
                             )}
                         </div>
-                      </div>
 
-                      {match.pickup_latitude !== null &&
-                      match.pickup_latitude !== undefined &&
-                      match.pickup_longitude !== null &&
-                      match.pickup_longitude !== undefined ? (
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${match.pickup_latitude},${match.pickup_longitude}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-                        >
-                          Open in Google Maps
-                        </a>
-                      ) : (
-                        <span className="shrink-0 text-xs text-gray-400">
-                          Map location unavailable
-                        </span>
-                      )}
+                        {selectedMatch.pickup_latitude !== null &&
+                        selectedMatch.pickup_latitude !== undefined &&
+                        selectedMatch.pickup_longitude !== null &&
+                        selectedMatch.pickup_longitude !== undefined ? (
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${selectedMatch.pickup_latitude},${selectedMatch.pickup_longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                          >
+                            Maps
+                          </a>
+                        ) : null}
+                      </div>
                     </section>
 
-                    {/* Donor note */}
                     <section className="rounded-xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3">
                       <p className="text-xs font-semibold text-amber-800">
                         📝 Note from the donor
                       </p>
-
                       <p className="mt-1 text-sm leading-6 text-gray-700">
-                        {match.note ||
+                        {selectedMatch.note ||
                           "No additional notes were provided by the donor."}
                       </p>
                     </section>
                   </div>
 
-                  {/* RIGHT: quantities + analysis */}
-
                   <div className="space-y-4 lg:col-span-2">
+                    <div className="flex justify-center">
+                      <ScoreRing score={selectedMatch.match_score} />
+                    </div>
+
                     <section>
                       <h3 className="mb-2 text-sm font-bold text-gray-900">
                         Donation details
                       </h3>
-
                       <div className="grid grid-cols-3 gap-2">
                         <Stat
                           label="You need"
-                          value={match.required_quantity}
-                          unit={match.required_unit}
+                          value={selectedMatch.required_quantity}
+                          unit={selectedMatch.required_unit}
                         />
-
                         <Stat
                           label="Available"
-                          value={match.available_quantity}
-                          unit={match.required_unit}
+                          value={selectedMatch.available_quantity}
+                          unit={selectedMatch.required_unit}
                         />
-
                         <Stat
                           label="Distance"
                           value={
-                            match.distance_km !== null &&
-                            match.distance_km !== undefined
-                              ? `${match.distance_km.toFixed(1)} km`
+                            selectedMatch.distance_km !== null &&
+                            selectedMatch.distance_km !== undefined
+                              ? `${selectedMatch.distance_km.toFixed(1)} km`
                               : "—"
                           }
                         />
@@ -992,48 +1220,37 @@ export default function NGOMatches() {
                       <h3 className="text-sm font-bold text-gray-900">
                         Match analysis
                       </h3>
-
                       <p className="mt-0.5 text-xs text-gray-500">
                         How this donation fits your requirement.
                       </p>
 
-                      <div className="mt-4 space-y-3.5">
+                      <div className="mt-4 space-y-3">
                         {[
-                          {
-                            label: "Food",
-                            value: match.food_match_score,
-                          },
+                          { label: "Food", value: selectedMatch.food_match_score },
                           {
                             label: "Quantity",
-                            value: match.quantity_match_score,
+                            value: selectedMatch.quantity_match_score,
                           },
                           {
                             label: "Distance",
-                            value: match.distance_match_score,
+                            value: selectedMatch.distance_match_score,
                           },
-                          {
-                            label: "Expiry",
-                            value: match.expiry_match_score,
-                          },
+                          { label: "Expiry", value: selectedMatch.expiry_match_score },
                         ].map((item) => (
                           <div key={item.label}>
                             <div className="flex items-center justify-between text-xs">
                               <span className="font-medium text-gray-600">
                                 {item.label}
                               </span>
-
                               <span
-                                className={`font-bold ${getScoreClass(
-                                  item.value
-                                )}`}
+                                className={`font-bold ${getScoreClass(item.value)}`}
                               >
                                 {item.value.toFixed(1)}%
                               </span>
                             </div>
-
                             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-100">
                               <div
-                                className={`h-full rounded-full transition-all ${getScoreBarClass(
+                                className={`h-full rounded-full ${getScoreBarClass(
                                   item.value
                                 )}`}
                                 style={{
@@ -1051,61 +1268,53 @@ export default function NGOMatches() {
                   </div>
                 </div>
 
-                {/* ---------------- CARD FOOTER ---------------- */}
+                <section className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-xs font-medium text-gray-500">
+                    Pickup availability
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-gray-800">
+                    {selectedMatch.available_from &&
+                    selectedMatch.available_until ? (
+                      <>
+                        {formatDateTime(selectedMatch.available_from)}
+                        <span className="mx-2 font-normal text-gray-400">
+                          to
+                        </span>
+                        {formatDateTime(selectedMatch.available_until)}
+                      </>
+                    ) : (
+                      "Availability window not specified"
+                    )}
+                  </p>
+                </section>
+              </div>
 
-                <footer className="flex flex-col gap-3 border-t border-gray-100 bg-gray-50 px-5 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-base shadow-sm ring-1 ring-gray-200">
-                      🕒
-                    </span>
+              <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSelectedMatch(null)}
+                  className="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  Close
+                </button>
 
-                    <div>
-                      <p className="text-xs font-medium text-gray-500">
-                        Pickup availability
-                      </p>
-
-                      <p className="mt-0.5 text-sm font-semibold text-gray-800">
-                        {match.available_from &&
-                        match.available_until ? (
-                          <>
-                            {formatDateTime(
-                              match.available_from
-                            )}
-
-                            <span className="mx-2 font-normal text-gray-400">
-                              to
-                            </span>
-
-                            {formatDateTime(
-                              match.available_until
-                            )}
-                          </>
-                        ) : (
-                          "Availability window not specified"
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openScheduleModal(match)
-                    }
-                    disabled={
-                      match.status !== "SUGGESTED"
-                    }
-                    className="inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300 md:min-w-[170px]"
-                  >
-                    {match.status === "SUGGESTED"
-                      ? "Schedule pickup"
-                      : match.status === "ACCEPTED"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedMatch(null);
+                    openScheduleModal(selectedMatch);
+                  }}
+                  disabled={selectedMatch.status !== "SUGGESTED"}
+                  className="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                >
+                  {selectedMatch.status === "SUGGESTED"
+                    ? "Schedule pickup"
+                    : selectedMatch.status === "ACCEPTED"
                       ? "Pickup accepted"
                       : "Pickup scheduled"}
-                  </button>
-                </footer>
-              </article>
-            ))}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1243,11 +1452,11 @@ export default function NGOMatches() {
                       {scheduleForm.match.pickup_latitude !==
                         null &&
                         scheduleForm.match.pickup_latitude !==
-                          undefined &&
+                        undefined &&
                         scheduleForm.match.pickup_longitude !==
-                          null &&
+                        null &&
                         scheduleForm.match.pickup_longitude !==
-                          undefined && (
+                        undefined && (
                           <a
                             href={`https://www.google.com/maps/search/?api=1&query=${scheduleForm.match.pickup_latitude},${scheduleForm.match.pickup_longitude}`}
                             target="_blank"
@@ -1265,7 +1474,7 @@ export default function NGOMatches() {
                       </p>
 
                       {scheduleForm.match.available_from &&
-                      scheduleForm.match.available_until ? (
+                        scheduleForm.match.available_until ? (
                         <p className="mt-1 text-sm font-semibold leading-5 text-blue-900">
                           {formatDateTime(
                             scheduleForm.match.available_from
@@ -1304,13 +1513,13 @@ export default function NGOMatches() {
                   {/* Pickup person */}
                   <div className="rounded-xl border border-green-200 bg-green-50 p-4">
                     <p className="text-xs font-semibold text-green-800">
-                      Person coming to collect the donation
+                      NGO details shared with donor to schedule this pickup.
                     </p>
 
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
                       <div className="min-w-0">
                         <p className="text-xs text-green-700">
-                          Name
+                          NGO Name
                         </p>
 
                         <p className="mt-0.5 truncate text-sm font-semibold text-gray-800">
@@ -1341,11 +1550,6 @@ export default function NGOMatches() {
                         </p>
                       </div>
                     </div>
-
-                    <p className="mt-3 text-xs leading-5 text-green-700">
-                      These are the contact details of the NGO account
-                      scheduling this pickup.
-                    </p>
                   </div>
 
                   {/* Date + time */}
@@ -1489,6 +1693,6 @@ export default function NGOMatches() {
             </div>
           )}
       </div>
-    </div>
+    </div >
   );
 }

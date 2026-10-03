@@ -13,6 +13,7 @@ import { getBusinessPickups, type Pickup, } from "../services/pickupApi";
 import type { AIPrediction } from "../services/aiPredictionApi";
 import { getAIPredictions } from "../services/aiPredictionApi";
 import { calculateSustainabilityImpact } from "../utils/sustainabilityImpact";
+import PageHeader from "../components/common/PageHeader";
 
 function Dashboard() {
   const { user, loading: authLoading } = useAuth();
@@ -318,31 +319,29 @@ function Dashboard() {
   ];
 
   return (
+
     <div className="space-y-6">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Business Dashboard
-          </h1>
-          <p className="text-sm text-slate-500">
-            Inventory health, AI waste risk, donations and sustainability impact.
-          </p>
+      <header className="px-1 pb-0 pt-3 sm:pt-0">
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+            Business{" "}
+            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+              Dashboard
+            </span>
+          </h2>
         </div>
-        <div className="flex gap-2">
-          <Link
-            to="/inventory"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm"
-          >
-            Inventory
-          </Link>
-          <Link
-            to="/surplus"
-            className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-sm"
-          >
-            Donations
-          </Link>
+
+        <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+          Fresh today, profitable tomorrow.
+        </p>
+
+        {/* Styled divider */}
+        <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+          <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+          <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
         </div>
-      </div>
+      </header>
+      
 
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700 shadow-sm">
@@ -495,7 +494,7 @@ function Dashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              
+
               {aiPredictions.slice(0, 8).map((prediction) => {
                 const predictionInventory = inventory.find(
                   (item) => item.id === prediction.inventory_id

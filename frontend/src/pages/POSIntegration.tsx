@@ -340,22 +340,31 @@ export default function PosTerminal() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
+    <>
+    <header className="px-1 pb-0 pt-3 sm:pt-0">
+  <div className="flex items-center gap-2.5">
+    <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+      Sale{" "}
+      <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+        Terminal
+      </span>
+    </h2>
+  </div>
+
+  <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+    Monitor inventory items that require attention before expiry.
+  </p>
+
+  {/* Styled divider */}
+  <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+    <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
+    <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+  </div>
+</header>
+
+
+    <div className="min-h-screen bg-slate-100 p-4 sm:p-2 lg:p-2">
       <div className="mx-auto max-w-7xl">
-
-        {/* HEADER */}
-        <div className="mb-6 flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-              POS Terminal
-            </h1>
-
-            <p className="text-xs text-slate-500 sm:text-sm">
-              Scan barcodes or choose items from inventory to execute sales.
-            </p>
-          </div>
-        </div>
-
         {/* MESSAGES */}
         {message && (
           <div className="mb-4 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
@@ -625,6 +634,7 @@ export default function PosTerminal() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

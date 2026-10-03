@@ -37,6 +37,18 @@ class DonationTransactionInfo(BaseModel):
     donated_at: datetime | None = None
     created_at: datetime
 
+    # NGO details
+    ngo_id: int | None = None
+    ngo_name: str | None = None
+    ngo_contact_name: str | None = None
+    ngo_contact_phone: str | None = None
+    ngo_contact_email: str | None = None
+
+    # NGO pickup details
+    pickup_notes: str | None = None
+    pickup_scheduled_start: datetime | None = None
+    pickup_scheduled_end: datetime | None = None
+
     class Config:
         from_attributes = True
 

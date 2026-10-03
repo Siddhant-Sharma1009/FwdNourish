@@ -9,6 +9,7 @@ export interface TransactionCreate {
   quantity: number;
   note?: string;
   sale_id?: string;
+  donation_id?: number;
 }
 
 export interface TransactionResponse extends Transaction {}

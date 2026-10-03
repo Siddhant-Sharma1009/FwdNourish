@@ -48,6 +48,109 @@ def normalize_datetime(value: datetime | None) -> datetime | None:
     return value
 
 
+def serialize_donation(
+    db: Session,
+    donation: Donation,
+) -> dict:
+    """
+    Build the donation response including the NGO assigned
+    through the latest pickup/match workflow.
+    """
+
+    # ---------------------------------------------------------
+    # Find the pickup associated with this donation
+    # ---------------------------------------------------------
+    pickup = (
+        db.query(Pickup)
+        .filter(
+            Pickup.donation_id == donation.id,
+            Pickup.status != "CANCELLED",
+        )
+        .order_by(Pickup.id.desc())
+        .first()
+    )
+
+    ngo_id = None
+    ngo_name = None
+    ngo_contact_name = None
+    ngo_contact_phone = None
+    ngo_contact_email = None
+
+    # Pickup details
+    pickup_notes = None
+    pickup_scheduled_start = None
+    pickup_scheduled_end = None
+
+    if pickup:
+        # Pickup information comes directly from the pickup
+        # that accepted/scheduled this donation.
+        pickup_notes = pickup.notes
+        pickup_scheduled_start = pickup.scheduled_start
+        pickup_scheduled_end = pickup.scheduled_end
+        ngo_id = pickup.ngo_id
+
+        ngo = (
+            db.query(NGO)
+            .filter(
+                NGO.id == pickup.ngo_id,
+            )
+            .first()
+        )
+
+        if ngo:
+            ngo_name = ngo.organization_name
+
+            ngo_user = (
+                db.query(User)
+                .filter(
+                    User.id == ngo.user_id,
+                )
+                .first()
+            )
+
+            if ngo_user:
+                ngo_contact_name = ngo_user.full_name
+                ngo_contact_phone = ngo_user.phone
+                ngo_contact_email = ngo_user.email
+
+    return {
+        "id": donation.id,
+        "tenant_id": donation.tenant_id,
+        "inventory_id": donation.inventory_id,
+
+        "quantity": donation.quantity,
+        "committed_quantity": donation.committed_quantity,
+        "remaining_quantity": donation.remaining_quantity,
+
+        "recipient_name": donation.recipient_name,
+
+        "pickup_location": donation.pickup_location,
+        "pickup_latitude": donation.pickup_latitude,
+        "pickup_longitude": donation.pickup_longitude,
+
+        "available_from": donation.available_from,
+        "available_until": donation.available_until,
+
+        "donation_status": donation.donation_status,
+        "note": donation.note,
+
+        "donated_at": donation.donated_at,
+        "created_at": donation.created_at,
+
+        # NGO
+        "ngo_id": ngo_id,
+        "ngo_name": ngo_name,
+        "ngo_contact_name": ngo_contact_name,
+        "ngo_contact_phone": ngo_contact_phone,
+        "ngo_contact_email": ngo_contact_email,
+
+        # Pickup
+        "pickup_notes": pickup_notes,
+        "pickup_scheduled_start": pickup_scheduled_start,
+        "pickup_scheduled_end": pickup_scheduled_end,
+        
+    }
+
 @router.post(
     "/",
     response_model=DonationResponse,
@@ -327,17 +430,13 @@ def get_donations(
     db: Session = Depends(get_db),
     user: User = Depends(require_tenant),
 ):
-    """
-    Get surplus listings created by the logged-in business.
-    """
-
     if not user.tenant_id:
         raise HTTPException(
             status_code=403,
             detail="Tenant profile is not configured.",
         )
 
-    return (
+    donations = (
         db.query(Donation)
         .filter(
             Donation.tenant_id == user.tenant_id
@@ -347,6 +446,11 @@ def get_donations(
         )
         .all()
     )
+
+    return [
+        serialize_donation(db, donation)
+        for donation in donations
+    ]
 
 
 @router.get(
@@ -358,9 +462,7 @@ def get_donation(
     db: Session = Depends(get_db),
     user: User = Depends(require_tenant),
 ):
-    """
-    Get one donation listing belonging to the logged-in business.
-    """
+    
 
     if not user.tenant_id:
         raise HTTPException(
@@ -383,7 +485,7 @@ def get_donation(
             detail="Donation listing not found.",
         )
 
-    return donation
+    return serialize_donation(db, donation)
 
 
 @router.patch(
@@ -443,12 +545,7 @@ def complete_donation(
     db: Session = Depends(get_db),
     user: User = Depends(require_tenant),
 ):
-    """
-    Complete a donation together with its pickup and match.
-
-    This endpoint is kept synchronized with the pickup completion
-    workflow so that all related records reach the same final state.
-    """
+   
 
     # ---------------------------------------------------------
     # 1. Validate business account
@@ -606,6 +703,30 @@ def complete_donation(
     donation.donated_at = datetime.utcnow()
 
     # ---------------------------------------------------------
+    # CREATE DONATION TRANSACTION
+    # ---------------------------------------------------------
+
+    existing_transaction = (
+        db.query(Transaction)
+        .filter(
+            Transaction.donation_id == donation.id,
+            Transaction.transaction_type == "DONATION",
+        )
+        .first()
+    )
+
+    if not existing_transaction:
+        donation_transaction = Transaction(
+            tenant_id=donation.tenant_id,
+            inventory_id=donation.inventory_id,
+            donation_id=donation.id,
+            transaction_type="DONATION",
+            quantity=donation.quantity,
+            note="Donation completed",
+        )
+
+        db.add(donation_transaction)    
+    # ---------------------------------------------------------
     # 11. Complete donation match
     # ---------------------------------------------------------
 
@@ -660,4 +781,4 @@ def complete_donation(
     db.commit()
     db.refresh(donation)
 
-    return donation
+    return serialize_donation(db, donation)
