@@ -70,98 +70,37 @@ export default function Login() {
 
         <form
           onSubmit={submit}
-          className="
-            auth-login-card
-            relative
-            overflow-hidden
-            rounded-[24px]
-            border
-            border-slate-200/80
-            bg-white
-            p-6
-            shadow-[0_20px_60px_rgba(15,23,42,0.08)]
-            sm:p-8
-          "
+          className="auth-login-card relative overflow-hidden rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-8"
         >
 
           {/* Decorative glow */}
-          <div
-            className="
-              pointer-events-none
-              absolute
-              -right-20
-              -top-20
-              h-48
-              w-48
-              rounded-full
-              bg-emerald-100/70
-              blur-3xl
-            "
-          />
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              -bottom-24
-              -left-20
-              h-40
-              w-40
-              rounded-full
-              bg-lime-100/40
-              blur-3xl
-            "
-          />
+          <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-emerald-100/70 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-20 h-40 w-40 rounded-full bg-lime-100/40 blur-3xl" />
 
           <div className="relative">
 
             {/* Security header */}
-            <div className="mb-7 flex items-center justify-between">
+            <div className="mb-6 flex items-center justify-between md:mb-7">
 
               <div className="flex items-center gap-2.5">
 
-                <div
-                  className="
-                    flex
-                    h-10
-                    w-10
-                    items-center
-                    justify-center
-                    rounded-xl
-                    bg-emerald-50
-                    text-emerald-600
-                  "
-                >
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 md:h-10 md:w-10 md:rounded-xl">
                   <ShieldIcon />
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold text-slate-800">
+                  <p className="text-sm font-bold text-slate-800 md:text-xs">
                     Secure sign in
                   </p>
 
-                  <p className="mt-0.5 text-[11px] text-slate-400">
+                  <p className="mt-0.5 text-xs text-slate-400 md:text-[11px]">
                     Access your FwdNourish workspace
                   </p>
                 </div>
 
               </div>
 
-              <span
-                className="
-                  hidden
-                  rounded-full
-                  border
-                  border-emerald-100
-                  bg-emerald-50
-                  px-3
-                  py-1.5
-                  text-[10px]
-                  font-bold
-                  text-emerald-700
-                  sm:inline-flex
-                "
-              >
+              <span className="hidden rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[10px] font-bold text-emerald-700 sm:inline-flex">
                 Secure
               </span>
 
@@ -170,18 +109,8 @@ export default function Login() {
             {/* Error */}
             {error && (
               <div
-                className="
-                  mb-5
-                  rounded-xl
-                  border
-                  border-red-200
-                  bg-red-50
-                  px-4
-                  py-3
-                  text-sm
-                  leading-5
-                  text-red-700
-                "
+                role="alert"
+                className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700 md:rounded-xl"
               >
                 {error}
               </div>
@@ -192,13 +121,7 @@ export default function Login() {
 
               <label
                 htmlFor="login-email"
-                className="
-                  mb-2
-                  block
-                  text-sm
-                  font-semibold
-                  text-slate-700
-                "
+                className="mb-2 block text-sm font-semibold text-slate-700"
               >
                 Email address
                 <span className="ml-1 text-red-500">*</span>
@@ -206,48 +129,22 @@ export default function Login() {
 
               <div className="relative">
 
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    left-4
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-400
-                  "
-                >
+                <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                   <MailIcon />
                 </div>
 
                 <input
                   id="login-email"
                   type="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="you@example.com"
                   autoComplete="email"
                   required
-                  className="
-                    h-12
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-slate-50
-                    pl-11
-                    pr-4
-                    text-sm
-                    text-slate-900
-                    outline-none
-                    transition-all
-                    duration-200
-                    placeholder:text-slate-400
-                    hover:border-slate-300
-                    focus:border-emerald-500
-                    focus:bg-white
-                    focus:ring-4
-                    focus:ring-emerald-500/10
-                  "
+                  className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-base text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 md:h-12 md:rounded-xl md:text-sm"
                 />
 
               </div>
@@ -259,13 +156,7 @@ export default function Login() {
 
               <label
                 htmlFor="login-password"
-                className="
-                  mb-2
-                  block
-                  text-sm
-                  font-semibold
-                  text-slate-700
-                "
+                className="mb-2 block text-sm font-semibold text-slate-700"
               >
                 Password
                 <span className="ml-1 text-red-500">*</span>
@@ -273,16 +164,7 @@ export default function Login() {
 
               <div className="relative">
 
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    left-4
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-400
-                  "
-                >
+                <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                   <LockIcon />
                 </div>
 
@@ -294,27 +176,7 @@ export default function Login() {
                   placeholder="Enter your password"
                   autoComplete="current-password"
                   required
-                  className="
-                    h-12
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-slate-50
-                    pl-11
-                    pr-12
-                    text-sm
-                    text-slate-900
-                    outline-none
-                    transition-all
-                    duration-200
-                    placeholder:text-slate-400
-                    hover:border-slate-300
-                    focus:border-emerald-500
-                    focus:bg-white
-                    focus:ring-4
-                    focus:ring-emerald-500/10
-                  "
+                  className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-14 text-base text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 md:h-12 md:rounded-xl md:pr-12 md:text-sm"
                 />
 
                 <button
@@ -327,22 +189,7 @@ export default function Login() {
                       ? "Hide password"
                       : "Show password"
                   }
-                  className="
-                    absolute
-                    right-3
-                    top-1/2
-                    flex
-                    h-8
-                    w-8
-                    -translate-y-1/2
-                    items-center
-                    justify-center
-                    rounded-lg
-                    text-slate-400
-                    transition
-                    hover:bg-slate-100
-                    hover:text-slate-600
-                  "
+                  className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 active:bg-slate-100 md:right-3 md:h-8 md:w-8 md:rounded-lg"
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
@@ -352,9 +199,9 @@ export default function Login() {
             </div>
 
             {/* Remember + forgot */}
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-2 flex items-center justify-between md:mt-4">
 
-              <label className="flex cursor-pointer items-center gap-2">
+              <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 md:min-h-0 md:gap-2">
 
                 <input
                   type="checkbox"
@@ -362,18 +209,10 @@ export default function Login() {
                   onChange={(event) =>
                     setRememberMe(event.target.checked)
                   }
-                  className="
-                    h-4
-                    w-4
-                    cursor-pointer
-                    rounded
-                    border-slate-300
-                    accent-emerald-600
-                    focus:ring-emerald-500
-                  "
+                  className="h-5 w-5 cursor-pointer rounded border-slate-300 accent-emerald-600 focus:ring-emerald-500 md:h-4 md:w-4"
                 />
 
-                <span className="text-xs font-medium text-slate-600">
+                <span className="text-sm font-medium text-slate-600 md:text-xs">
                   Remember me
                 </span>
 
@@ -381,13 +220,7 @@ export default function Login() {
 
               <Link
                 to="/forgot-password"
-                className="
-                  text-xs
-                  font-bold
-                  text-emerald-600
-                  transition-colors
-                  hover:text-emerald-700
-                "
+                className="inline-flex min-h-[44px] items-center text-sm font-bold text-emerald-600 transition-colors hover:text-emerald-700 md:min-h-0 md:text-xs"
               >
                 Forgot password?
               </Link>
@@ -398,51 +231,10 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="
-                group
-                relative
-                mt-6
-                flex
-                h-12
-                w-full
-                items-center
-                justify-center
-                gap-2
-                overflow-hidden
-                rounded-xl
-                bg-gradient-to-r
-                from-emerald-600
-                via-emerald-500
-                to-green-500
-                px-5
-                text-sm
-                font-bold
-                text-white
-                shadow-[0_10px_25px_rgba(16,185,129,0.20)]
-                transition-all
-                duration-300
-                hover:-translate-y-0.5
-                hover:shadow-[0_14px_30px_rgba(16,185,129,0.28)]
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-                disabled:hover:translate-y-0
-              "
+              className="group relative mt-4 flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-500 px-5 text-base font-bold text-white shadow-[0_10px_25px_rgba(16,185,129,0.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(16,185,129,0.28)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 md:mt-6 md:h-12 md:rounded-xl md:text-sm md:active:scale-100"
             >
 
-              <span
-                className="
-                  pointer-events-none
-                  absolute
-                  inset-y-0
-                  -left-20
-                  w-16
-                  skew-x-[-20deg]
-                  bg-white/20
-                  transition-all
-                  duration-700
-                  group-hover:left-[110%]
-                "
-              />
+              <span className="pointer-events-none absolute inset-y-0 -left-20 w-16 skew-x-[-20deg] bg-white/20 transition-all duration-700 group-hover:left-[110%]" />
 
               <span className="relative">
                 {loading ? "Signing in..." : "Sign in"}
@@ -455,7 +247,7 @@ export default function Login() {
             </button>
 
             {/* Divider */}
-            <div className="my-7 flex items-center gap-4">
+            <div className="my-6 flex items-center gap-4 md:my-7">
 
               <div className="h-px flex-1 bg-slate-200" />
 
@@ -478,43 +270,9 @@ export default function Login() {
 
                 <Link
                   to="/signup/tenant"
-                  className="
-                    group
-                    flex
-                    h-12
-                    items-center
-                    justify-center
-                    gap-2.5
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-white
-                    px-3
-                    text-sm
-                    font-bold
-                    text-slate-700
-                    transition-all
-                    duration-200
-                    hover:-translate-y-0.5
-                    hover:border-emerald-200
-                    hover:bg-emerald-50/40
-                    hover:text-emerald-700
-                  "
+                  className="group flex h-14 items-center justify-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-3 text-base font-bold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50/40 hover:text-emerald-700 active:bg-emerald-50 md:h-12 md:rounded-xl md:text-sm"
                 >
-                  <span
-                    className="
-                      flex
-                      h-8
-                      w-8
-                      items-center
-                      justify-center
-                      rounded-lg
-                      bg-emerald-50
-                      text-emerald-600
-                      transition-transform
-                      group-hover:scale-110
-                    "
-                  >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110 md:h-8 md:w-8 md:rounded-lg">
                     <StoreIcon />
                   </span>
 
@@ -523,43 +281,9 @@ export default function Login() {
 
                 <Link
                   to="/signup/ngo"
-                  className="
-                    group
-                    flex
-                    h-12
-                    items-center
-                    justify-center
-                    gap-2.5
-                    rounded-xl
-                    border
-                    border-slate-200
-                    bg-white
-                    px-3
-                    text-sm
-                    font-bold
-                    text-slate-700
-                    transition-all
-                    duration-200
-                    hover:-translate-y-0.5
-                    hover:border-emerald-200
-                    hover:bg-emerald-50/40
-                    hover:text-emerald-700
-                  "
+                  className="group flex h-14 items-center justify-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-3 text-base font-bold text-slate-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50/40 hover:text-emerald-700 active:bg-emerald-50 md:h-12 md:rounded-xl md:text-sm"
                 >
-                  <span
-                    className="
-                      flex
-                      h-8
-                      w-8
-                      items-center
-                      justify-center
-                      rounded-lg
-                      bg-emerald-50
-                      text-emerald-600
-                      transition-transform
-                      group-hover:scale-110
-                    "
-                  >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110 md:h-8 md:w-8 md:rounded-lg">
                     <UsersIcon />
                   </span>
 
@@ -571,38 +295,13 @@ export default function Login() {
             </div>
 
             {/* Trust message */}
-            <div
-              className="
-                mt-6
-                flex
-                items-center
-                gap-3
-                rounded-xl
-                border
-                border-emerald-100
-                bg-emerald-50/70
-                px-4
-                py-3
-              "
-            >
+            <div className="mt-6 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 md:rounded-xl">
 
-              <div
-                className="
-                  flex
-                  h-9
-                  w-9
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-emerald-100
-                  text-emerald-600
-                "
-              >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <ShieldIcon small />
               </div>
 
-              <p className="text-[11px] leading-5 text-slate-500">
+              <p className="text-xs leading-5 text-slate-500 md:text-[11px]">
                 Your account and workspace are protected with
                 secure authentication.
               </p>
@@ -731,14 +430,7 @@ function ArrowIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="
-        relative
-        h-4
-        w-4
-        transition-transform
-        duration-300
-        group-hover:translate-x-1
-      "
+      className="relative h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"

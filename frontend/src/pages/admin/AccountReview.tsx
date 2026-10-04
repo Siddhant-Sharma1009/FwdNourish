@@ -261,7 +261,7 @@ export default function AccountReview() {
 
   return (
     <>
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-4 pb-24 md:space-y-6 md:pb-0">
 
         {/* =====================================================
             HEADER
@@ -270,18 +270,18 @@ export default function AccountReview() {
         <div>
           <Link
             to="/admin"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-emerald-600"
+            className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-emerald-600 md:min-h-0"
           >
             ← Back to accounts
           </Link>
 
-          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between md:mt-5">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-600">
                 Account review
               </p>
 
-              <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+              <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
                 {user.organization_name ||
                   user.full_name}
               </h1>
@@ -301,13 +301,13 @@ export default function AccountReview() {
         ====================================================== */}
 
         {success && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 md:rounded-xl">
             {success}
           </div>
         )}
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 md:rounded-xl">
             {error}
           </div>
         )}
@@ -320,7 +320,7 @@ export default function AccountReview() {
           title="Account information"
           description="Basic identity and authentication information."
         >
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-x-5 gap-y-3 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
             <Info label="Account ID" value={`${user.id}`} />
 
             <Info
@@ -376,7 +376,7 @@ export default function AccountReview() {
           }
           description="Information submitted during registration."
         >
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-x-5 gap-y-3 sm:grid-cols-2 md:gap-5">
             <Info
               label={
                 user.role === "NGO"
@@ -408,7 +408,7 @@ export default function AccountReview() {
             )}
           </div>
 
-          <div className="mt-5">
+          <div className="mt-3 md:mt-5">
             <Info
               label="Description"
               value={user.description}
@@ -425,7 +425,7 @@ export default function AccountReview() {
           title="Location"
           description="Registered organization location."
         >
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-x-5 gap-y-3 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
             <Info
               label="Address"
               value={user.address}
@@ -471,7 +471,7 @@ export default function AccountReview() {
               href={user.google_maps_link}
               target="_blank"
               rel="noreferrer"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700"
+              className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 active:bg-emerald-50 md:mt-5 md:inline-flex md:min-h-0 md:w-auto"
             >
               Open Google Maps
               <span>↗</span>
@@ -487,7 +487,7 @@ export default function AccountReview() {
           title="Online presence"
           description="Public links provided during registration."
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 md:gap-4">
             <LinkInfo
               label="Website"
               value={user.website}
@@ -518,7 +518,7 @@ export default function AccountReview() {
           title="Verification history"
           description="Administrator verification information."
         >
-          <div className="grid gap-5 sm:grid-cols-3">
+          <div className="grid gap-x-5 gap-y-3 sm:grid-cols-3 md:gap-5">
             <Info
               label="Verified at"
               value={
@@ -548,8 +548,8 @@ export default function AccountReview() {
             ADMIN ACTIONS
         ====================================================== */}
 
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-5">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm md:rounded-2xl">
+          <div className="border-b border-slate-100 px-4 py-4 md:px-6 md:py-5">
             <h2 className="font-bold text-slate-900">
               Administrative decision
             </h2>
@@ -559,13 +559,13 @@ export default function AccountReview() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3 px-6 py-5">
+          <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:flex-wrap md:px-6 md:py-5">
             {user.status === "PENDING" && (
               <>
                 <button
                   onClick={handleApprove}
                   disabled={actionLoading}
-                  className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                  className="min-h-[52px] w-full rounded-2xl bg-emerald-600 px-5 py-3 text-base font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 md:min-h-0 md:w-auto md:rounded-xl md:text-sm md:shadow-none md:active:scale-100"
                 >
                   Approve account
                 </button>
@@ -573,7 +573,7 @@ export default function AccountReview() {
                 <button
                   onClick={() => setModal("REJECT")}
                   disabled={actionLoading}
-                  className="rounded-xl bg-red-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-50"
+                  className="min-h-[52px] w-full rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-base font-bold text-red-700 transition hover:bg-red-100 active:scale-[0.98] disabled:opacity-50 md:min-h-0 md:w-auto md:rounded-xl md:border-0 md:bg-red-600 md:text-sm md:text-white md:hover:bg-red-700 md:active:scale-100"
                 >
                   Reject account
                 </button>
@@ -584,7 +584,7 @@ export default function AccountReview() {
               <button
                 onClick={() => setModal("SUSPEND")}
                 disabled={actionLoading}
-                className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-white transition hover:bg-amber-600 disabled:opacity-50"
+                className="min-h-[52px] w-full rounded-2xl bg-amber-500 px-5 py-3 text-base font-bold text-white shadow-sm transition hover:bg-amber-600 active:scale-[0.98] disabled:opacity-50 md:min-h-0 md:w-auto md:rounded-xl md:text-sm md:shadow-none md:active:scale-100"
               >
                 Suspend account
               </button>
@@ -594,7 +594,7 @@ export default function AccountReview() {
               <button
                 onClick={handleReactivate}
                 disabled={actionLoading}
-                className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                className="min-h-[52px] w-full rounded-2xl bg-emerald-600 px-5 py-3 text-base font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 md:min-h-0 md:w-auto md:rounded-xl md:text-sm md:shadow-none md:active:scale-100"
               >
                 Reactivate account
               </button>
@@ -604,7 +604,7 @@ export default function AccountReview() {
               <button
                 onClick={() => setModal("REMOVE")}
                 disabled={actionLoading}
-                className="rounded-xl border border-red-200 px-5 py-3 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                className="min-h-[48px] w-full rounded-2xl px-5 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50 active:bg-red-50 disabled:opacity-50 md:min-h-0 md:w-auto md:rounded-xl md:border md:border-red-200 md:text-red-700 md:font-bold"
               >
                 Remove account
               </button>
@@ -614,12 +614,17 @@ export default function AccountReview() {
       </div>
 
       {/* =====================================================
-          ACTION MODAL
+          ACTION MODAL (mobile: bottom sheet · desktop: dialog)
       ====================================================== */}
 
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 px-0 backdrop-blur-sm md:items-center md:px-4">
+          <div className="w-full max-w-md rounded-t-3xl bg-white shadow-2xl md:rounded-2xl">
+
+            {/* Mobile sheet handle */}
+            <div className="flex justify-center pt-2 md:hidden">
+              <span className="h-1.5 w-10 rounded-full bg-slate-300" />
+            </div>
 
             <div className="border-b border-slate-100 px-6 py-5">
               <h3 className="text-lg font-bold text-slate-900">
@@ -669,17 +674,17 @@ export default function AccountReview() {
                         ? "Reason for rejection..."
                         : "Reason for suspension..."
                     }
-                    className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50"
+                    className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 md:text-sm"
                   />
                 </>
               )}
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
+            <div className="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-4">
               <button
                 onClick={closeModal}
                 disabled={actionLoading}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="min-h-[48px] flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 md:min-h-0 md:flex-none"
               >
                 Cancel
               </button>
@@ -687,7 +692,7 @@ export default function AccountReview() {
               <button
                 onClick={executeAction}
                 disabled={actionLoading}
-                className={`rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50 ${
+                className={`min-h-[48px] flex-1 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50 md:min-h-0 md:flex-none ${
                   modal === "SUSPEND"
                     ? "bg-amber-500 hover:bg-amber-600"
                     : "bg-red-600 hover:bg-red-700"
@@ -723,8 +728,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-6 py-5">
+    <section className="rounded-3xl border border-slate-200 bg-white shadow-sm md:rounded-2xl">
+      <div className="border-b border-slate-100 px-4 py-4 md:px-6 md:py-5">
         <h2 className="font-bold text-slate-900">
           {title}
         </h2>
@@ -734,7 +739,7 @@ function Section({
         </p>
       </div>
 
-      <div className="px-6 py-5">
+      <div className="px-4 py-4 md:px-6 md:py-5">
         {children}
       </div>
     </section>
@@ -753,13 +758,15 @@ function Info({
   className?: string;
 }) {
   return (
-    <div className={className}>
+    <div
+      className={`border-b border-slate-100 pb-3 last:border-b-0 last:pb-0 md:border-0 md:pb-0 ${className}`}
+    >
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
         {label}
       </p>
 
       <p
-        className={`mt-1.5 text-sm font-medium text-slate-800 ${
+        className={`mt-1 text-[15px] font-medium text-slate-800 md:mt-1.5 md:text-sm ${
           multiline
             ? "whitespace-pre-wrap leading-6"
             : "break-words"
@@ -779,7 +786,7 @@ function LinkInfo({
   value?: string | null;
 }) {
   return (
-    <div>
+    <div className="border-b border-slate-100 pb-3 last:border-b-0 last:pb-0 md:border-0 md:pb-0">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
         {label}
       </p>
@@ -789,12 +796,12 @@ function LinkInfo({
           href={value}
           target="_blank"
           rel="noreferrer"
-          className="mt-1.5 block break-all text-sm font-medium text-emerald-700 hover:underline"
+          className="mt-1 block break-all text-[15px] font-medium text-emerald-700 hover:underline md:mt-1.5 md:text-sm"
         >
           {value}
         </a>
       ) : (
-        <p className="mt-1.5 text-sm font-medium text-slate-400">
+        <p className="mt-1 text-[15px] font-medium text-slate-400 md:mt-1.5 md:text-sm">
           Not provided
         </p>
       )}

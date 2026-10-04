@@ -968,7 +968,7 @@ function SurplusListings() {
   // ============================================================
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
+    <div className="mx-auto w-full max-w-7xl space-y-4 pb-6 sm:space-y-6">
 
       {/* ======================================================
           HEADER
@@ -1002,7 +1002,7 @@ function SurplusListings() {
       ======================================================= */}
 
       {message && (
-        <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+        <div className="sticky top-2 z-30 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-lg sm:static sm:shadow-none">
 
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700">
             ✓
@@ -1021,7 +1021,7 @@ function SurplusListings() {
       ======================================================= */}
 
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
+        <div className="sticky top-2 z-30 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 shadow-lg sm:static sm:shadow-none">
 
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 font-bold text-rose-700">
             !
@@ -1044,7 +1044,7 @@ function SurplusListings() {
         className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
       >
 
-        <div className="border-b border-slate-100 px-5 py-5 sm:px-6">
+        <div className="border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
 
           <div className="flex items-center gap-3">
 
@@ -1068,7 +1068,7 @@ function SurplusListings() {
         </div>
 
 
-        <div className="space-y-7 p-5 sm:p-6">
+        <div className="space-y-5 p-4 sm:space-y-7 sm:p-6">
 
           {/* ==================================================
               INVENTORY
@@ -1123,7 +1123,7 @@ function SurplusListings() {
                     }
                   }}
                   placeholder="Search food name, SKU or category..."
-                  className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-10 text-sm text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-10 text-base text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:text-sm"
                 />
 
                 {inventorySearch && (
@@ -1157,7 +1157,7 @@ function SurplusListings() {
                     }
                   />
 
-                  <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-20 max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+                  <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-20 max-h-[60vh] overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 shadow-xl sm:max-h-80">
 
                     {filteredInventory.length === 0 ? (
                       <div className="px-4 py-8 text-center">
@@ -1212,7 +1212,7 @@ function SurplusListings() {
                                     🍱
                                   </div>
 
-                                  <div className="min-w-0 flex-1">
+                                  <div className="min-w-0 basis-full flex-1 sm:basis-auto">
 
                                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
 
@@ -1358,7 +1358,7 @@ function SurplusListings() {
                     clearAiRecommendation();
                     setQuantityInput(event.target.value);
                   }}
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 pr-16 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-xl border border-slate-300 px-3 pr-16 text-base outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-11 sm:rounded-lg sm:text-sm"
                   required
                 />
 
@@ -1405,7 +1405,7 @@ function SurplusListings() {
                 }
                 maxLength={1000}
                 placeholder="Optional information for NGOs"
-                className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="h-12 w-full rounded-xl border border-slate-300 px-3 text-base outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-11 sm:rounded-lg sm:text-sm"
               />
 
               <p className="mt-2 text-xs text-slate-400">
@@ -1425,7 +1425,7 @@ function SurplusListings() {
               LOCATION
           =================================================== */}
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+          <section className="rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-5">
             <div className="mb-4">
               <h3 className="text-sm font-bold text-slate-900">
                 Pickup Location
@@ -1461,7 +1461,7 @@ function SurplusListings() {
                     }));
                   }}
                   placeholder="e.g. 28.4595"
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-xl border border-slate-300 px-3 text-base outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-11 sm:rounded-lg sm:text-sm"
                   required
                 />
               </div>
@@ -1482,7 +1482,7 @@ function SurplusListings() {
                     }));
                   }}
                   placeholder="e.g. 77.0266"
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-xl border border-slate-300 px-3 text-base outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-11 sm:rounded-lg sm:text-sm"
                   required
                 />
               </div>
@@ -1496,7 +1496,7 @@ function SurplusListings() {
                   value={googleMapsLink}
                   onChange={(event) => setGoogleMapsLink(event.target.value)}
                   placeholder="https://www.google.com/maps?q=28.4595,77.0266"
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-xl border border-slate-300 px-3 text-base outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-11 sm:rounded-lg sm:text-sm"
                   required
                 />
                 <p className="mt-1.5 text-[11px] text-slate-400">
@@ -1512,7 +1512,7 @@ function SurplusListings() {
               NGO SELECTION
           =================================================== */}
 
-          <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
+          <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 sm:p-5">
             <div className="mb-4">
               <h3 className="text-sm font-bold text-slate-900">
                 Select NGO
@@ -1523,7 +1523,7 @@ function SurplusListings() {
               </p>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -1533,7 +1533,7 @@ function SurplusListings() {
                   setSelectedNgoId(0);
                   setError("");
                 }}
-                className={`rounded-xl border px-4 py-3 text-left transition ${ngoSelectionMode === "MANUAL"
+                className={`rounded-xl border px-3 py-3 text-center transition sm:px-4 sm:text-left ${ngoSelectionMode === "MANUAL"
                   ? "border-emerald-400 bg-emerald-50"
                   : "border-slate-200 bg-white hover:border-emerald-300"
                   }`}
@@ -1541,7 +1541,7 @@ function SurplusListings() {
                 <p className="text-sm font-semibold text-slate-800">
                   Select Manually
                 </p>
-                <p className="mt-0.5 text-[11px] text-slate-500">
+                <p className="mt-0.5 hidden text-[11px] text-slate-500 sm:block">
                   Browse registered NGOs and view their requirements.
                 </p>
               </button>
@@ -1553,7 +1553,7 @@ function SurplusListings() {
                   setSelectedNgoId(0);
                   setError("");
                 }}
-                className={`rounded-xl border px-4 py-3 text-left transition ${ngoSelectionMode === "AI"
+                className={`rounded-xl border px-3 py-3 text-center transition sm:px-4 sm:text-left ${ngoSelectionMode === "AI"
                   ? "border-blue-400 bg-blue-50"
                   : "border-slate-200 bg-white hover:border-blue-300"
                   }`}
@@ -1561,7 +1561,7 @@ function SurplusListings() {
                 <p className="text-sm font-semibold text-slate-800">
                   AI Recommend
                 </p>
-                <p className="mt-0.5 text-[11px] text-slate-500">
+                <p className="mt-0.5 hidden text-[11px] text-slate-500 sm:block">
                   Match food, quantity, location and expiry automatically.
                 </p>
               </button>
@@ -1591,19 +1591,19 @@ function SurplusListings() {
                     No registered active NGOs found.
                   </div>
                 ) : (
-                  <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                  <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1 sm:max-h-80">
                     {filteredNGOs.map((ngo) => {
                       const isSelected = ngo.id === selectedNgoId;
 
                       return (
                         <div
                           key={ngo.id}
-                          className={`flex items-center gap-3 rounded-xl border bg-white px-3 py-3 transition ${isSelected
+                          className={`flex flex-wrap items-center gap-2 rounded-xl border bg-white px-3 py-3 transition sm:flex-nowrap sm:gap-3 ${isSelected
                             ? "border-emerald-400 bg-emerald-50/70"
                             : "border-slate-200 hover:border-slate-300"
                             }`}
                         >
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 basis-full flex-1 sm:basis-auto">
                             <p className="truncate text-sm font-semibold text-slate-800">
                               {ngo.organization_name}
                             </p>
@@ -1625,7 +1625,7 @@ function SurplusListings() {
                           <button
                             type="button"
                             onClick={() => setSelectedNgoDetails(ngo)}
-                            className="shrink-0 rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50"
+                            className="flex-1 shrink-0 rounded-lg border border-slate-200 px-2.5 py-2.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 sm:flex-none sm:py-1.5"
                           >
                             View Details
                           </button>
@@ -1636,7 +1636,7 @@ function SurplusListings() {
                               setSelectedNgoId(ngo.id);
                               setError("");
                             }}
-                            className={`shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-bold ${isSelected
+                            className={`flex-1 shrink-0 rounded-lg px-3 py-2.5 text-[11px] font-bold sm:flex-none sm:py-1.5 ${isSelected
                               ? "bg-emerald-600 text-white"
                               : "bg-slate-900 text-white hover:bg-slate-800"
                               }`}
@@ -1854,7 +1854,7 @@ function SurplusListings() {
                       event.target.value
                     )
                   }
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-xl border border-slate-300 px-3 text-base outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-11 sm:rounded-lg sm:text-sm"
                   required
                 />
 
@@ -1881,7 +1881,7 @@ function SurplusListings() {
                     clearAiRecommendation();
                     setAvailableUntil(event.target.value);
                   }}
-                  className="h-11 w-full rounded-lg border border-slate-300 px-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="h-12 w-full rounded-xl border border-slate-300 px-3 text-base outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:h-11 sm:rounded-lg sm:text-sm"
                   required
                 />
 
@@ -1896,9 +1896,9 @@ function SurplusListings() {
               SUBMIT
           =================================================== */}
 
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="sticky bottom-0 z-20 -mx-4 -mb-4 flex flex-col-reverse gap-2 border-t border-slate-100 bg-white/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:mb-0 sm:flex-row sm:items-center sm:justify-between sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-5 sm:backdrop-blur-none">
 
-            <p className="text-xs leading-5 text-slate-400">
+            <p className="text-[11px] leading-4 text-slate-400 sm:text-xs sm:leading-5">
               {ngoSelectionMode === "AI"
                 ? "Get the AI recommendation, select one NGO, then publish the surplus."
                 : "Select one active NGO, then publish only non-expired food with available stock."}
@@ -1911,7 +1911,7 @@ function SurplusListings() {
                 !selectedInventory ||
                 eligibleInventory.length === 0
               }
-              className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-emerald-900/10 transition hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-emerald-900/10 transition hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:py-3"
             >
               {loading
                 ? "Publishing..."
@@ -1946,7 +1946,7 @@ function SurplusListings() {
           </div>
 
 
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-row">
             <input
               type="text"
               value={listingSearch}
@@ -1954,7 +1954,7 @@ function SurplusListings() {
                 setListingSearch(event.target.value)
               }
               placeholder="Search listings..."
-              className="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:w-52"
+              className="col-span-2 h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 sm:col-span-1 sm:w-52 sm:text-sm"
             />
 
             <select
@@ -2354,13 +2354,14 @@ function SurplusListings() {
       =================================================== */}
       {selectedNgoDetails && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 sm:items-center sm:p-4"
           onClick={() => setSelectedNgoDetails(null)}
         >
           <div
-            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-2xl sm:max-h-[85vh] sm:rounded-2xl sm:pb-5"
             onClick={(event) => event.stopPropagation()}
           >
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-300 sm:hidden" />
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-600">
@@ -2479,7 +2480,7 @@ function SurplusListings() {
               )}
             </div>
 
-            <div className="mt-5 flex justify-end gap-2">
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
               <button
                 type="button"
                 onClick={() => setSelectedNgoDetails(null)}
@@ -2508,13 +2509,14 @@ function SurplusListings() {
       =================================================== */}
       {selectedListingDetails && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 sm:items-center sm:p-4"
           onClick={() => setSelectedListingDetails(null)}
         >
           <div
-            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl"
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-2xl sm:max-h-[85vh] sm:rounded-2xl sm:pb-5"
             onClick={(event) => event.stopPropagation()}
           >
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-300 sm:hidden" />
             {(() => {
               const detailListing = selectedListingDetails;
               const detailInventory = inventory.find(

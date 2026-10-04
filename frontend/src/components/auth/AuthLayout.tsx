@@ -17,7 +17,7 @@ export default function AuthLayout({
   mode = "login",
 }: AuthLayoutProps) {
   return (
-    <div className="h-screen overflow-hidden bg-slate-100">
+    <div className="h-[100dvh] overflow-hidden bg-slate-100 lg:h-screen">
       <div className="flex h-full w-full">
         {/* =====================================================
             LEFT PANEL
@@ -39,7 +39,7 @@ export default function AuthLayout({
                   className="block h-auto w-[230px] max-w-full object-contain object-left mix-blend-screen xl:w-[270px]"
                 />
                 <p className="-mt-1 pl-1 text-[11px] font-medium text-emerald-100/60">
-                  AI-powered food redistribution
+                  AI-powered food redistribution software solution.
                 </p>
               </div>
 
@@ -79,27 +79,37 @@ export default function AuthLayout({
         </aside>
 
         {/* =====================================================
-            RIGHT PANEL (unchanged)
+            RIGHT PANEL
         ====================================================== */}
 
-        <main className="h-screen min-w-0 flex-1 overflow-y-auto bg-[#f7faf9]">
-          <div className="border-b border-emerald-900/10 bg-[#003b35] px-5 py-5 lg:hidden">
-            <img
-              src={logo}
-              alt="FwdNourish"
-              className="h-auto w-[190px] mix-blend-screen"
-            />
+        <main className="h-[100dvh] min-w-0 flex-1 overflow-y-auto bg-[#f7faf9] lg:h-screen">
+          {/* Mobile brand header (hidden on desktop, where the left panel shows the logo) */}
+          <div className="relative overflow-hidden bg-[#013a34] px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] lg:hidden">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(16,185,129,0.28),transparent_60%),radial-gradient(ellipse_at_90%_100%,rgba(132,204,22,0.18),transparent_55%),linear-gradient(160deg,#013a34_0%,#012621_100%)]" />
+            <div className="pointer-events-none absolute -right-16 -top-10 h-40 w-40 rounded-full bg-emerald-400/15 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-16 h-36 w-36 rounded-full bg-lime-400/10 blur-3xl" />
+
+            <div className="relative flex flex-col items-start">
+              <img
+                src={logo}
+                alt="FwdNourish"
+                className="block h-auto w-[210px] max-w-[72%] object-contain object-left mix-blend-screen sm:w-[240px]"
+              />
+              <p className="-mt-1 pl-9 text-xs font-medium text-emerald-100/65">
+                AI-powered food redistribution software.
+              </p>
+            </div>
           </div>
 
-          <div className="mx-auto flex min-h-full w-full max-w-[680px] flex-col px-5 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-10">
-            <div className="mb-7">
+          <div className="mx-auto flex min-h-full w-full max-w-[680px] flex-col px-5 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:px-8 sm:py-9 lg:px-10 lg:py-10">
+            <div className="mb-6 lg:mb-7">
               {mode === "pending" && (
                 <div className="mb-3 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">
                   Account review
                 </div>
               )}
 
-              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
+              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
                 {title}
               </h2>
 

@@ -210,6 +210,22 @@ function Transactions() {
     });
   }
 
+  function getDayLabel(date?: string | null) {
+    if (!date) return "Unknown date";
+
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return "Unknown date";
+
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (parsed.toDateString() === today.toDateString()) return "Today";
+    if (parsed.toDateString() === yesterday.toDateString()) return "Yesterday";
+
+    return formatDate(date);
+  }
+
   function isStockOutTransaction(type: string) {
     return ["SALE", "WASTE", "DONATION"].includes(
       type.toUpperCase()
@@ -402,6 +418,18 @@ function Transactions() {
     );
   }
 
+  // Mobile list: group display groups under day headings
+  const mobileSections: { label: string; groups: TransactionDisplayGroup[] }[] = [];
+  groupedTransactions.forEach((group) => {
+    const label = getDayLabel(group.createdAt);
+    const last = mobileSections[mobileSections.length - 1];
+    if (last && last.label === label) {
+      last.groups.push(group);
+    } else {
+      mobileSections.push({ label, groups: [group] });
+    }
+  });
+
   return (
     <div className="min-h-screen bg-slate-100 p-4 pb-28 sm:p-2">
       <div className="mx-auto w-full max-w-7xl">
@@ -446,9 +474,40 @@ function Transactions() {
           </div>
         )}
 
-        {/* SUMMARY CARDS (mobile: swipeable strip · desktop: grid) */}
-        <div className="-mx-4 mb-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:mb-6 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-5">
-          <div className="min-w-[44%] shrink-0 snap-start rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:min-w-0 md:shrink">
+        {/* SUMMARY (mobile hero card) */}
+        <div className="mb-4 rounded-3xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-5 text-white shadow-lg md:hidden">
+          <p className="text-xs font-medium text-emerald-100">Total transactions</p>
+          <p className="mt-1 text-4xl font-bold tracking-tight">
+            {transactions.length}
+          </p>
+          <p className="text-xs text-emerald-100">Transaction records</p>
+
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {[
+              { label: "Sales", value: saleCount, dot: "bg-rose-300" },
+              { label: "Purchases", value: purchaseCount, dot: "bg-blue-300" },
+              { label: "Donations", value: donationCount, dot: "bg-emerald-300" },
+              { label: "Waste", value: expiredCount, dot: "bg-orange-300" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl bg-white/10 px-2 py-3 text-center"
+              >
+                <span className={`mx-auto mb-1.5 block h-1.5 w-1.5 rounded-full ${item.dot}`} />
+                <p className="text-lg font-bold leading-none">{item.value}</p>
+                <p className="mt-1 text-[10px] text-emerald-100">{item.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-3 text-[11px] text-emerald-100">
+            {formatNumber(donatedQuantity)} units donated · {expiredCount} expired items
+          </p>
+        </div>
+
+        {/* SUMMARY CARDS (desktop) */}
+        <div className="mb-6 hidden grid-cols-2 gap-3 md:grid lg:grid-cols-5">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Total
             </p>
@@ -462,7 +521,7 @@ function Transactions() {
             </p>
           </div>
 
-          <div className="min-w-[44%] shrink-0 snap-start rounded-2xl border border-rose-200 bg-white p-4 shadow-sm md:min-w-0 md:shrink">
+          <div className="rounded-2xl border border-rose-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-rose-500">
               Sales
             </p>
@@ -476,7 +535,7 @@ function Transactions() {
             </p>
           </div>
 
-          <div className="min-w-[44%] shrink-0 snap-start rounded-2xl border border-blue-200 bg-white p-4 shadow-sm md:min-w-0 md:shrink">
+          <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-blue-500">
               Purchases
             </p>
@@ -490,7 +549,7 @@ function Transactions() {
             </p>
           </div>
 
-          <div className="min-w-[44%] shrink-0 snap-start rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm md:min-w-0 md:shrink">
+          <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">
               Donations
             </p>
@@ -504,7 +563,7 @@ function Transactions() {
             </p>
           </div>
 
-          <div className="min-w-[44%] shrink-0 snap-start rounded-2xl border border-orange-200 bg-white p-4 shadow-sm md:min-w-0 md:shrink">
+          <div className="rounded-2xl border border-orange-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-orange-500">
               Waste
             </p>
@@ -560,8 +619,7 @@ function Transactions() {
 
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
             <span>
-              {groupedTransactions.length} group
-              {groupedTransactions.length === 1 ? "" : "s"} ·{" "}
+               
               {filteredTransactions.length} record
               {filteredTransactions.length === 1 ? "" : "s"}
             </span>
@@ -644,8 +702,8 @@ function Transactions() {
           </div>
         </div>
 
-        {/* MOBILE TRANSACTION LIST (app-style cards) */}
-        <div className="space-y-3 md:hidden">
+        {/* MOBILE TRANSACTION LIST (grouped by day, tap a row for details) */}
+        <div className="space-y-5 md:hidden">
           {groupedTransactions.length === 0 && (
             <div className="rounded-3xl bg-white px-6 py-12 text-center shadow-sm ring-1 ring-slate-200/70">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-400">
@@ -660,102 +718,77 @@ function Transactions() {
             </div>
           )}
 
-          {groupedTransactions.map((group) => {
-            const firstTransaction = group.transactions[0];
-            const type = group.transactionType;
-            const styles = getTypeStyle(type);
-            const donation = getDonationForTransaction(firstTransaction);
-            const quantity = getGroupQuantity(group);
-            const unit = getGroupUnit(group);
+          {mobileSections.map((section) => (
+            <section key={section.label}>
+              <h3 className="mb-2 px-2 text-xs font-semibold text-slate-500">
+                {section.label}
+              </h3>
 
-            return (
-              <article
-                key={group.key}
-                className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/70"
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-base font-bold ${styles.badge}`}
-                  >
-                    {type === "DONATION"
-                      ? "🎁"
-                      : type === "SALE"
-                        ? "₹"
-                        : type === "PURCHASE"
-                          ? "+"
-                          : "↔"}
-                  </div>
+              <div className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/70">
+                {section.groups.map((group) => {
+                  const firstTransaction = group.transactions[0];
+                  const type = group.transactionType;
+                  const styles = getTypeStyle(type);
+                  const donation = getDonationForTransaction(firstTransaction);
+                  const typeLabel =
+                    type.charAt(0) + type.slice(1).toLowerCase();
 
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-[15px] font-semibold text-slate-900">
-                      {getItemName(firstTransaction)}
-                    </h3>
-                    <p className="truncate text-xs text-slate-500">
-                      {group.saleId
-                        ? `Sale #${group.saleId}`
-                        : `Transaction #${firstTransaction.id}`}{" "}
-                      · {formatDate(group.createdAt)}
-                    </p>
-                    {group.transactions.length > 1 && (
-                      <p className="mt-0.5 text-[11px] text-slate-400">
-                        {group.transactions.length} records in this sale
-                      </p>
-                    )}
-                  </div>
+                  const subtitle =
+                    type === "DONATION" && donation
+                      ? `Donation to ${getRecipientName(firstTransaction)}`
+                      : group.saleId
+                        ? `Sale #${group.saleId}${
+                            group.transactions.length > 1
+                              ? ` · ${group.transactions.length} records`
+                              : ""
+                          }`
+                        : `${typeLabel} · ${
+                            firstTransaction.note || getItemSku(firstTransaction)
+                          }`;
 
-                  <span
-                    className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${styles.badge}`}
-                  >
-                    {type}
-                  </span>
-                </div>
+                  return (
+                    <button
+                      key={group.key}
+                      type="button"
+                      onClick={() => setSelectedGroup(group)}
+                      className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-slate-50"
+                    >
+                      <div
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-lg font-bold ${styles.badge}`}
+                      >
+                        {type === "DONATION"
+                          ? "🎁"
+                          : type === "SALE"
+                            ? "₹"
+                            : type === "PURCHASE"
+                              ? "+"
+                              : "↔"}
+                      </div>
 
-                <div className="mt-3 flex items-end justify-between rounded-2xl bg-slate-50 p-3">
-                  <div>
-                    <p className="text-[11px] font-medium text-slate-500">Quantity</p>
-                    <p className={`mt-0.5 text-xl font-bold ${styles.quantity}`}>
-                      {getQuantityPrefix(type)}
-                      {formatNumber(quantity)}{" "}
-                      <span className="text-sm font-semibold">{unit}</span>
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[11px] font-medium text-slate-500">SKU</p>
-                    <p className="mt-0.5 font-mono text-xs font-semibold text-slate-700">
-                      {getItemSku(firstTransaction)}
-                    </p>
-                  </div>
-                </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[15px] font-semibold text-slate-900">
+                          {getItemName(firstTransaction)}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-slate-500">
+                          {subtitle}
+                        </p>
+                      </div>
 
-                {type === "DONATION" && donation ? (
-                  <div className="mt-3 rounded-2xl bg-emerald-50 p-3 text-xs">
-                    <p className="text-[11px] font-medium text-emerald-700">Recipient</p>
-                    <p className="mt-0.5 text-sm font-semibold text-emerald-900">
-                      {getRecipientName(firstTransaction)}
-                    </p>
-                    {donation.pickup_location && (
-                      <p className="mt-1 truncate text-emerald-700">
-                        📍 {donation.pickup_location}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="mt-3 line-clamp-2 text-xs text-slate-500">
-                    {firstTransaction.note || "No additional note"}
-                  </p>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedGroup(group)}
-                  className="mt-3 flex min-h-[44px] w-full items-center justify-between rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition active:bg-slate-50"
-                >
-                  View transaction details
-                  <span className="text-slate-400">→</span>
-                </button>
-              </article>
-            );
-          })}
+                      <div className="shrink-0 text-right">
+                        <p className={`text-[15px] font-bold ${styles.quantity}`}>
+                          {getQuantityPrefix(type)}
+                          {formatNumber(getGroupQuantity(group))}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-slate-400">
+                          {getGroupUnit(group)} · {formatTime(group.createdAt)}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
 
         {/* TABLE */}
