@@ -67,7 +67,7 @@ const AuthField = forwardRef<
             className: _className,
             textarea: _textarea,
             ...textareaProps
-          } = props;
+          } = props as TextareaProps;
 
           return (
             <textarea
@@ -87,7 +87,7 @@ const AuthField = forwardRef<
             className: _className,
             textarea: _textarea,
             ...inputProps
-          } = props;
+          } = props as InputProps;
 
           return (
             <input

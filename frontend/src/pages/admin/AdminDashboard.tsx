@@ -179,7 +179,7 @@ export default function AdminDashboard() {
                 </span>
               </h2>
 
-              <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
+              <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base">
                 Review, verify and manage platform organizations.
               </p>
             </div>

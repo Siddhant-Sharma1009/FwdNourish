@@ -160,7 +160,7 @@ export default function App() {
         <Route
           element={
             <ProtectedRoute
-              allowedRoles={["TENANT", "NGO"]}
+              allowedRoles={["ADMIN","TENANT", "NGO"]}
             />
           }
         >

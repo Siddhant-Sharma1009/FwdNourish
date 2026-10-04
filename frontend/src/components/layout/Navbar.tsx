@@ -101,7 +101,7 @@ export default function Navbar({
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-[68px] w-full shrink-0 items-center justify-between gap-3 border-b border-white/[0.08] bg-[#0a1813]/95 px-4 shadow-[0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-xl md:px-7">
+    <header className="sticky top-0 z-30 flex h-[60px] md:h-[68px] w-full shrink-0 items-center justify-between gap-3 border-b border-white/[0.08] bg-[#0a1813]/95 px-3 shadow-[0_1px_0_rgba(255,255,255,0.02)] backdrop-blur-xl md:px-7">
       {/* Left: mobile toggle + page title */}
       <div className="flex min-w-0 items-center gap-3">
         <button
@@ -156,7 +156,7 @@ export default function Navbar({
           type="button"
           onClick={handleLogout}
           aria-label="Log out"
-          className={`group flex h-11 items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 text-[13px] font-medium text-emerald-50/80 transition-colors hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-300 ${focusRing}`}
+          className={`group hidden h-11 items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 text-[13px] font-medium text-emerald-50/80 transition-colors hover:border-rose-400/30 hover:bg-rose-500/10 hover:text-rose-300 ${focusRing}`}
         >
           <Icon
             d={PATHS.logout}

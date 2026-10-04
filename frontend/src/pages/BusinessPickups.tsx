@@ -222,7 +222,7 @@ export default function BusinessPickups() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold text-gray-900">
-                      Pickup #{pickup.id}
+                      Pickup {pickup.id}
                     </h2>
 
                     <span

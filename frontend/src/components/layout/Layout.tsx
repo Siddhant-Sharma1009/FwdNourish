@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import InventoryEntryNav from "../InventoryEntryNav";
+import MobileBottomNav from "./MobileBottomNav";
 
 function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -28,9 +29,9 @@ function Layout() {
         />
 
         {/* Only the page content scrolls */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
           {/* THE ONLY place that controls page padding and max width */}
-          <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8 md:py-8">
+          <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-8 md:py-8">
             {showInventoryEntryNav && (
               <div className="mb-6">
                 <InventoryEntryNav />
@@ -40,6 +41,7 @@ function Layout() {
           </div>
         </main>
       </div>
+      <MobileBottomNav />
     </div>
   );
 }

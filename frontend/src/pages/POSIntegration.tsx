@@ -343,7 +343,7 @@ export default function PosTerminal() {
     <>
     <header className="px-1 pb-0 pt-3 sm:pt-0">
   <div className="flex items-center gap-2.5">
-    <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+    <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl ">
       Sale{" "}
       <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
         Terminal

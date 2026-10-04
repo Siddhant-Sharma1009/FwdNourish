@@ -104,7 +104,7 @@ function ExpiryAlerts() {
 
       <header className="px-1 pb-0 pt-3 sm:pt-0">
         <div className="flex items-center gap-2.5">
-          <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl ">
             Expiry{" "}
             <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
               Alerts
@@ -241,7 +241,7 @@ function ExpiryAlerts() {
 
           {/* ================= FILTERS ================= */}
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <div className="mobile-app-card overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
 
             <div className="grid gap-4 p-5 md:grid-cols-3">
 
@@ -556,114 +556,43 @@ function ExpiryAlerts() {
               </div>
 
               {/* ================= MOBILE LIST ================= */}
-
-              <div className="space-y-3 md:hidden">
+              <div className="mobile-content-list md:hidden">
                 {filteredAlerts.map((item) => {
                   const isExpired = item.days_remaining < 0;
-                  const isCritical =
-                    item.days_remaining >= 0 &&
-                    item.days_remaining <= 3;
+                  const isCritical = item.days_remaining >= 0 && item.days_remaining <= 3;
+                  const tone = isExpired ? "danger" : isCritical ? "warning" : "safe";
 
                   return (
-                    <div
-                      key={item.inventory_id}
-                      className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm"
-                    >
-                      <div className="p-4 sm:p-5">
-
-                        {/* Product Header */}
-                        <div className="flex items-start justify-between gap-3">
+                    <article key={item.inventory_id} className={`mobile-record mobile-alert-record mobile-alert-${tone}`}>
+                      <div className="mobile-record-head">
+                        <div className="mobile-record-title-wrap">
+                          <div className={`mobile-alert-dot mobile-alert-dot-${tone}`} />
                           <div className="min-w-0">
-                            <h3 className="truncate font-semibold text-slate-800">
-                              {item.name}
-                            </h3>
-
-                            <p className="mt-1 font-mono text-xs text-slate-500">
-                              {item.sku}
-                            </p>
-                          </div>
-
-                          <ExpiryBadge status={item.status} />
-                        </div>
-
-                        {/* Information */}
-                        <div className="mt-5 grid grid-cols-2 gap-4">
-
-                          <div>
-                            <p className="text-xs text-slate-400">
-                              Quantity
-                            </p>
-
-                            <p className="mt-1 text-sm font-semibold text-slate-800">
-                              {item.quantity} {item.unit}
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="text-xs text-slate-400">
-                              Status
-                            </p>
-
-                            <p
-                              className={`mt-1 text-sm font-semibold ${isExpired
-                                ? "text-rose-700"
-                                : isCritical
-                                  ? "text-orange-700"
-                                  : "text-amber-700"
-                                }`}
-                            >
-                              {isExpired
-                                ? "Expired"
-                                : item.status}
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="text-xs text-slate-400">
-                              Expiry
-                            </p>
-
-                            <p className="mt-1 text-sm font-medium text-slate-700">
-                              {item.expiry_date}
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="text-xs text-slate-400">
-                              Remaining
-                            </p>
-
-                            <p
-                              className={`mt-1 text-sm font-semibold ${isExpired
-                                ? "text-rose-700"
-                                : isCritical
-                                  ? "text-orange-700"
-                                  : "text-amber-700"
-                                }`}
-                            >
-                              {isExpired
-                                ? `${Math.abs(
-                                  item.days_remaining
-                                )} days overdue`
-                                : `${item.days_remaining} days`}
-                            </p>
+                            <h3 className="mobile-record-title">{item.name}</h3>
+                            <p className="mobile-record-subtitle">{item.sku} · Inventory #{item.inventory_id}</p>
                           </div>
                         </div>
+                        <ExpiryBadge status={item.status} />
+                      </div>
 
-                        {/* Bottom Information */}
-                        <div className="mt-4 border-t border-slate-100 pt-4">
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs text-slate-400">
-                              Inventory ID
-                            </p>
-
-                            <p className="font-mono text-xs text-slate-600">
-                              #{item.inventory_id}
-                            </p>
-                          </div>
+                      <div className="mobile-alert-hero">
+                        <div>
+                          <span className="mobile-metric-label">{isExpired ? "Overdue" : "Time remaining"}</span>
+                          <strong className={`mobile-alert-days mobile-alert-days-${tone}`}>
+                            {isExpired ? `${Math.abs(item.days_remaining)}d` : `${item.days_remaining}d`}
+                          </strong>
+                        </div>
+                        <div className="text-right">
+                          <span className="mobile-metric-label">Quantity</span>
+                          <strong className="mobile-metric-value">{item.quantity} {item.unit}</strong>
                         </div>
                       </div>
-                    </div>
+
+                      <div className="mobile-record-meta">
+                        <span>Expiry <b>{item.expiry_date}</b></span>
+                        <span>Status <b>{isExpired ? "Expired" : item.status}</b></span>
+                      </div>
+                    </article>
                   );
                 })}
               </div>

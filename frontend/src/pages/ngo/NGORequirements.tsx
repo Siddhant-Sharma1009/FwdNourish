@@ -210,7 +210,7 @@ export default function NGORequirements() {
       <header className="px-1 pb-0 pt-3 sm:pt-0">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl ">
                 Food{" "}
                 <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
                   Requirenments

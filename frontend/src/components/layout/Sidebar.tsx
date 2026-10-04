@@ -122,7 +122,6 @@ const addInventorySubMenu: SubMenuItem[] = [
 const tenantMenuItems: MenuItem[] = [
   { name: "Dashboard", path: "/dashboard" },
   { name: "Point Of Sale", path: "/pos" },
-  // FIX: without `end`, "Inventory" stayed highlighted on /inventory/add too
   { name: "Inventory", path: "/inventory", end: true },
   { name: "Add Inventory", children: addInventorySubMenu },
   { name: "Expiry Alerts", path: "/expiry-alerts" },

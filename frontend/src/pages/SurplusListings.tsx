@@ -976,7 +976,7 @@ function SurplusListings() {
 
       <header className="px-1 pb-0 pt-3 sm:pt-0">
         <div className="flex items-center gap-2.5">
-          <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl ">
             Food{" "}
             <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
               Donations
@@ -2009,8 +2009,59 @@ function SurplusListings() {
           </div>
 
         ) : (
+          <>
+          {/* MOBILE DONATION LIST */}
+          <div className="mobile-content-list md:hidden">
+            {filteredListings.map((listing) => {
+              const status = listing.donation_status.toUpperCase();
+              const listingInventory = inventory.find((item) => item.id === listing.inventory_id);
+              const activePickup = listing.donation_status === "PICKUP_SCHEDULED" || listing.donation_status === "READY_FOR_PICKUP";
+              const statusLabel = status.replaceAll("_", " ");
 
-          <div className="overflow-x-auto">
+              return (
+                <article key={listing.id} onClick={() => setSelectedListingDetails(listing)} className="mobile-record mobile-donation-record">
+                  <div className="mobile-record-head">
+                    <div className="mobile-record-title-wrap">
+                      <div className="mobile-record-icon donation-icon">{listingInventory?.name?.charAt(0)?.toUpperCase() || "D"}</div>
+                      <div className="min-w-0">
+                        <h3 className="mobile-record-title">{listingInventory?.name || `Inventory #${listing.inventory_id}`}</h3>
+                        <p className="mobile-record-subtitle">{listingInventory?.sku ? `SKU ${listingInventory.sku} · ` : ""}Donation #{listing.id}</p>
+                      </div>
+                    </div>
+                    <span className={`mobile-status-pill status-${status.toLowerCase()}`}>{statusLabel}</span>
+                  </div>
+
+                  <div className="mobile-donation-hero">
+                    <div>
+                      <span className="mobile-metric-label">Available to donate</span>
+                      <strong className="mobile-donation-quantity">{listing.quantity} <small>{listingInventory?.unit || "units"}</small></strong>
+                    </div>
+                    <div className="text-right">
+                      <span className="mobile-metric-label">Remaining</span>
+                      <strong className="mobile-metric-value">{listing.remaining_quantity}</strong>
+                    </div>
+                  </div>
+
+                  <div className="mobile-donation-info">
+                    <div><span>Pickup</span><b>📍 {listing.pickup_location || "Not specified"}</b></div>
+                    {listing.ngo_name ? (
+                      <div><span>Accepted by</span><b>{listing.ngo_name}</b>{listing.ngo_contact_name && <small>{listing.ngo_contact_name}{listing.ngo_contact_phone ? ` · ${listing.ngo_contact_phone}` : ""}</small>}</div>
+                    ) : (
+                      <div><span>Next step</span><b className="text-amber-700">Waiting for NGO / pickup</b></div>
+                    )}
+                  </div>
+
+                  <div className="mobile-record-actions">
+                    {listing.donation_status === "PUBLISHED" && <button type="button" onClick={(event) => { event.stopPropagation(); handleCancel(listing.id); }} className="mobile-action mobile-action-danger">Cancel</button>}
+                    {activePickup && <button type="button" disabled={completingListingId === listing.id} onClick={(event) => { event.stopPropagation(); handleMarkDonated(listing); }} className="mobile-action mobile-action-primary">{completingListingId === listing.id ? "Completing…" : "Donated"}</button>}
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setSelectedListingDetails(listing); }} className="mobile-action mobile-action-outline">Details</button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
 
             <table className="w-full min-w-[900px] text-left">
 
@@ -2292,7 +2343,7 @@ function SurplusListings() {
             </table>
 
           </div>
-
+          </>
         )}
 
       </div>
