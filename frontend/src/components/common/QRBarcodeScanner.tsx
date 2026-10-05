@@ -31,7 +31,11 @@ export default function QRBarcodeScanner({
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: { width: 280, height: 180 },
+          // Adapts to narrow phone screens instead of a fixed 280x180 box.
+          qrbox: (viewfinderWidth: number) => {
+            const width = Math.min(280, viewfinderWidth - 32);
+            return { width, height: Math.round(width * 0.64) };
+          },
         },
         (decodedText) => {
           // Prevent the same barcode from firing repeatedly
@@ -100,7 +104,7 @@ export default function QRBarcodeScanner({
         {/* Camera area */}
         <div
           id="qr-barcode-reader"
-          className="min-h-[260px] w-full overflow-hidden bg-slate-950"
+          className="min-h-[220px] w-full overflow-hidden bg-slate-950 sm:min-h-[260px] [&_video]:w-full [&_video]:object-cover"
         />
 
         {/* Scanner status badge */}
@@ -127,7 +131,7 @@ export default function QRBarcodeScanner({
         {/* Scan frame */}
         {scanning && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="relative h-[180px] w-[280px]">
+            <div className="relative aspect-[14/9] w-[85%] max-w-[280px]">
               {/* Corner brackets */}
               <span className="absolute left-0 top-0 h-7 w-7 rounded-tl-lg border-l-2 border-t-2 border-emerald-400" />
               <span className="absolute right-0 top-0 h-7 w-7 rounded-tr-lg border-r-2 border-t-2 border-emerald-400" />
@@ -173,8 +177,8 @@ export default function QRBarcodeScanner({
         )}
       </div>
 
-      {/* Scanner information */}
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Scanner information (hidden on mobile to save space) */}
+      <div className="hidden flex-col gap-3 rounded-xl border border-slate-100 bg-slate-50/70 p-4 sm:flex sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
             <svg
@@ -182,7 +186,7 @@ export default function QRBarcodeScanner({
               fill="none"
               stroke="currentColor"
               strokeWidth="1.8"
-              className="h-4.5 w-4.5"
+              className="h-5 w-5"
             >
               <path
                 strokeLinecap="round"
@@ -245,7 +249,7 @@ export default function QRBarcodeScanner({
           <button
             type="button"
             onClick={() => setError("")}
-            className="shrink-0 rounded-lg p-1 text-rose-400 transition hover:bg-rose-100 hover:text-rose-700"
+            className="shrink-0 rounded-lg p-2 text-rose-400 transition hover:bg-rose-100 hover:text-rose-700"
             aria-label="Dismiss error"
           >
             <svg
@@ -271,7 +275,7 @@ export default function QRBarcodeScanner({
           <button
             type="button"
             onClick={startScanner}
-            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500/30 active:translate-y-0"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-base font-semibold text-white shadow-sm transition-all duration-200 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 active:translate-y-0 sm:h-11 sm:flex-1 sm:text-sm sm:hover:-translate-y-0.5 sm:hover:shadow-md"
           >
             <svg
               viewBox="0 0 24 24"
@@ -294,7 +298,7 @@ export default function QRBarcodeScanner({
           <button
             type="button"
             onClick={stopScanner}
-            className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-5 text-sm font-semibold text-rose-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-rose-500/20 active:translate-y-0"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-5 text-base font-semibold text-rose-600 shadow-sm transition-all duration-200 hover:border-rose-300 hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-500/20 active:translate-y-0 sm:h-11 sm:flex-1 sm:text-sm sm:hover:-translate-y-0.5 sm:hover:shadow-md"
           >
             <span className="flex h-5 w-5 items-center justify-center rounded-md bg-rose-100">
               <span className="h-2 w-2 rounded-sm bg-rose-500" />
@@ -305,9 +309,9 @@ export default function QRBarcodeScanner({
         )}
       </div>
 
-      {/* Active scanner status */}
+      {/* Active scanner status (hidden on mobile; the camera badge shows it) */}
       {scanning && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3">
+        <div className="hidden items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 sm:flex">
           <span className="relative flex h-2.5 w-2.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
@@ -322,4 +326,3 @@ export default function QRBarcodeScanner({
     </div>
   );
 }
-

@@ -62,8 +62,8 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to continue managing food inventory, surplus and redistribution."
+      title="Welcome back !!"
+      subtitle="Sign in to turn surplus food into community impact."
       mode="login"
     >
       <div className="mx-auto w-full max-w-[540px]">

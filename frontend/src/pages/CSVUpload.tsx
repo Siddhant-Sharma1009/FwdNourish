@@ -3,6 +3,13 @@ import { uploadInventoryCSV } from "../services/csvApi";
 
 type UploadResult = Awaited<ReturnType<typeof uploadInventoryCSV>>;
 
+/*
+  MOBILE-FIRST NOTES
+  - Every phone-only style is paired with an sm: class that restores the
+    original desktop value, so screens >= 640px render exactly as before.
+  - Logic (state, validation, upload, drag & drop) is unchanged.
+*/
+
 function CSVUpload() {
   const tenantId = 1;
 
@@ -117,14 +124,15 @@ function CSVUpload() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
-
-        
+    <div className="min-h-screen bg-slate-100 p-0 sm:p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-6xl space-y-3 sm:space-y-6">
 
         {/* ================= ERROR ALERT ================= */}
         {error && (
-          <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 shadow-sm">
+          <div
+            role="alert"
+            className="mx-3 mt-3 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 shadow-sm sm:mx-0 sm:mt-0"
+          >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
               <svg
                 className="h-4 w-4"
@@ -158,11 +166,12 @@ function CSVUpload() {
         )}
 
         {/* ================= UPLOAD CARD ================= */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
+        {/* Phones: edge-to-edge sheet. sm+: original rounded card. */}
+        <div className="overflow-hidden rounded-none border-y border-slate-200/80 bg-white shadow-sm transition-shadow duration-200 sm:rounded-2xl sm:border sm:hover:shadow-md">
 
           {/* Card Header */}
-          <div className="border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/70 px-5 py-5 sm:px-7">
-            <div className="flex items-start gap-4">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-white to-slate-50/70 px-4 py-4 sm:px-7 sm:py-5">
+            <div className="flex items-start gap-3.5 sm:gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                 <svg
                   className="h-5 w-5"
@@ -190,20 +199,25 @@ function CSVUpload() {
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
-                  Select a CSV file or drag and drop it below.
+                  <span className="sm:hidden">
+                    Choose a CSV file to import your inventory.
+                  </span>
+                  <span className="hidden sm:inline">
+                    Select a CSV file or drag and drop it below.
+                  </span>
                 </p>
               </div>
             </div>
           </div>
 
           {/* Card Content */}
-          <div className="p-5 sm:p-7">
+          <div className="p-4 sm:p-7">
 
             {/* ================= DROP ZONE ================= */}
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              className="group flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 px-5 py-10 text-center transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50/20"
+              className="group flex min-h-0 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/60 px-4 py-8 text-center transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50/20 sm:min-h-[320px] sm:px-5 sm:py-10"
             >
               {/* Upload Icon */}
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shadow-sm transition-transform duration-200 group-hover:scale-105">
@@ -233,11 +247,17 @@ function CSVUpload() {
               </div>
 
               <h3 className="mt-5 text-lg font-bold text-slate-900">
-                Drop your CSV file here
+                <span className="sm:hidden">Import your CSV file</span>
+                <span className="hidden sm:inline">Drop your CSV file here</span>
               </h3>
 
               <p className="mt-1 text-sm text-slate-500">
-                or choose a file from your computer
+                <span className="sm:hidden">
+                  or pick one from your device
+                </span>
+                <span className="hidden sm:inline">
+                  or choose a file from your computer
+                </span>
               </p>
 
               <p className="mt-2 text-xs text-slate-400">
@@ -298,7 +318,7 @@ function CSVUpload() {
                       type="button"
                       onClick={handleClearFile}
                       disabled={uploading}
-                      className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="shrink-0 touch-manipulation rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-600 shadow-sm transition active:scale-[0.97] active:bg-slate-100 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3 sm:py-2 sm:active:scale-100"
                     >
                       Change
                     </button>
@@ -311,7 +331,7 @@ function CSVUpload() {
 
                 <label
                   htmlFor="csv-file-input"
-                  className="inline-flex h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 focus-within:outline-none focus-within:ring-4 focus-within:ring-emerald-50"
+                  className="inline-flex h-12 w-full flex-none cursor-pointer touch-manipulation sm:w-auto sm:flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-all active:scale-[0.98] active:bg-slate-100 hover:border-slate-300 hover:bg-slate-50 focus-within:outline-none focus-within:ring-4 focus-within:ring-emerald-50 sm:h-11 sm:active:scale-100"
                 >
                   <svg
                     className="h-4 w-4"
@@ -344,7 +364,7 @@ function CSVUpload() {
                   type="button"
                   onClick={handleUpload}
                   disabled={!file || uploading}
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                  className="inline-flex h-12 w-full flex-none touch-manipulation sm:w-auto sm:flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition-all active:scale-[0.98] active:bg-emerald-700 hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none sm:h-11 sm:active:scale-100"
                 >
                   {uploading ? (
                     <>
@@ -437,10 +457,10 @@ function CSVUpload() {
         {result && (
           <div
             ref={resultRef}
-            className="scroll-mt-6 overflow-hidden rounded-2xl border border-emerald-200/80 bg-white shadow-sm"
+            className="scroll-mt-6 overflow-hidden rounded-none border-y border-emerald-200/80 bg-white shadow-sm sm:rounded-2xl sm:border"
           >
             {/* Result Header */}
-            <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-5 sm:px-7">
+            <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-4 py-4 sm:px-7 sm:py-5">
               <div className="flex items-center gap-3">
 
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
@@ -472,13 +492,13 @@ function CSVUpload() {
             </div>
 
             {/* Result Content */}
-            <div className="p-5 sm:p-7">
+            <div className="p-4 sm:p-7">
 
-              {/* Result Stats */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Result Stats: side by side on phones, icon hidden to save room */}
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
 
                 {/* Successfully Inserted */}
-                <div className="group rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 transition-all hover:shadow-sm">
+                <div className="group rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 transition-all hover:shadow-sm sm:p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
@@ -494,7 +514,7 @@ function CSVUpload() {
                       </p>
                     </div>
 
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm">
+                    <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm sm:flex">
                       <svg
                         className="h-5 w-5"
                         viewBox="0 0 24 24"
@@ -513,7 +533,7 @@ function CSVUpload() {
                 </div>
 
                 {/* Failed Rows */}
-                <div className="group rounded-2xl border border-rose-200 bg-rose-50/60 p-5 transition-all hover:shadow-sm">
+                <div className="group rounded-2xl border border-rose-200 bg-rose-50/60 p-4 transition-all hover:shadow-sm sm:p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-rose-700">
@@ -529,7 +549,7 @@ function CSVUpload() {
                       </p>
                     </div>
 
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-rose-600 shadow-sm">
+                    <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-white text-rose-600 shadow-sm sm:flex">
                       <svg
                         className="h-5 w-5"
                         viewBox="0 0 24 24"
@@ -578,8 +598,8 @@ function CSVUpload() {
                               {item.row}
                             </div>
 
-                            <div>
-                              <p className="text-sm font-semibold text-rose-900">
+                            <div className="min-w-0">
+                              <p className="break-words text-sm font-semibold text-rose-900">
                                 Row {item.row}
                                 {item.sku ? ` — ${item.sku}` : ""}
                               </p>
@@ -596,7 +616,7 @@ function CSVUpload() {
                         </div>
 
                         <div className="mt-3 rounded-xl border border-rose-100 bg-white/70 px-3 py-2.5">
-                          <p className="text-sm leading-5 text-rose-700">
+                          <p className="break-words text-sm leading-5 text-rose-700">
                             {item.error}
                           </p>
                         </div>
@@ -608,14 +628,14 @@ function CSVUpload() {
 
               {/* ================= UPLOAD ANOTHER ================= */}
               <div className="mt-7 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-slate-400">
+                <p className="text-center text-xs text-slate-400 sm:text-left">
                   You can upload another CSV after reviewing this import.
                 </p>
 
                 <button
                   type="button"
                   onClick={handleClearFile}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow"
+                  className="inline-flex touch-manipulation items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all active:scale-[0.98] active:bg-slate-100 hover:border-slate-300 hover:bg-slate-50 hover:shadow sm:py-2.5 sm:active:scale-100"
                 >
                   <svg
                     className="h-4 w-4"

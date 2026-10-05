@@ -341,9 +341,9 @@ export default function PosTerminal() {
 
   return (
     <>
-    <header className="px-1 pb-0 pt-3 sm:pt-0">
+    <header className="px-4 pb-0 pt-3 sm:px-1 sm:pt-0">
   <div className="flex items-center gap-2.5">
-    <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl ">
+    <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl ">
       Sale{" "}
       <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
         Terminal
@@ -356,18 +356,18 @@ export default function PosTerminal() {
   </p>
 
   {/* Styled divider */}
-  <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
+  <div className="relative mb-4 mt-4 hidden sm:mb-6 sm:mt-5 md:block">
     <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
     <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
   </div>
 </header>
 
 
-    <div className="min-h-screen bg-slate-100 p-4 sm:p-2 lg:p-2">
+    <div className="min-h-screen bg-slate-100 p-4 pb-24 sm:p-2 lg:p-2">
       <div className="mx-auto max-w-7xl">
         {/* MESSAGES */}
         {message && (
-          <div className="mb-4 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+          <div className="mb-4 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 md:rounded-xl">
             <div className="flex items-center gap-2">
               <span>✓</span>
               <span>{message}</span>
@@ -375,7 +375,7 @@ export default function PosTerminal() {
 
             <button
               onClick={() => setMessage("")}
-              className="text-xs text-emerald-600 hover:text-emerald-900"
+              className="px-2 py-2 text-xs text-emerald-600 hover:text-emerald-900 md:p-0"
             >
               Dismiss
             </button>
@@ -383,7 +383,7 @@ export default function PosTerminal() {
         )}
 
         {error && (
-          <div className="mb-4 flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
+          <div className="mb-4 flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700 md:rounded-xl">
             <div className="flex items-center gap-2">
               <span>⚠️</span>
               <span>{error}</span>
@@ -391,20 +391,21 @@ export default function PosTerminal() {
 
             <button
               onClick={() => setError("")}
-              className="text-xs text-rose-500 hover:text-rose-800"
+              className="px-2 py-2 text-xs text-rose-500 hover:text-rose-800 md:p-0"
             >
               Dismiss
             </button>
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-12">
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-12">
 
-          {/* LEFT: SCANNER & MANUAL SELECTION */}
-          <div className="space-y-5 lg:col-span-7">
+          {/* LEFT: SCANNER & MANUAL SELECTION
+              (mobile: search comes first, then scanner) */}
+          <div className="flex flex-col gap-4 md:block md:space-y-5 lg:col-span-7">
 
             {/* REUSABLE SCANNER COMPONENT */}
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:rounded-2xl md:p-5">
               <h2 className="mb-1 text-sm font-bold text-slate-900">
                 Barcode Scanner
               </h2>
@@ -419,7 +420,7 @@ export default function PosTerminal() {
             </div>
 
             {/* MANUAL QUICK-ADD CONTROLS */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="order-first rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:order-none md:rounded-2xl md:p-5">
               <h2 className="text-sm font-bold text-slate-900">
                 Manual Quick-Add
               </h2>
@@ -449,7 +450,7 @@ export default function PosTerminal() {
                         }
                       }}
                       placeholder="Search by item name, SKU or barcode..."
-                      className="h-10 flex-1 rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      className="h-12 min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 text-base outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 md:h-10 md:rounded-xl md:px-3 md:text-sm"
                     />
 
                     <button
@@ -461,7 +462,7 @@ export default function PosTerminal() {
                         checkingSku ||
                         !itemSearch.trim()
                       }
-                      className="h-10 rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                      className="h-12 shrink-0 rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 active:scale-95 disabled:opacity-50 md:h-10 md:rounded-xl md:px-4 md:text-xs md:active:scale-100"
                     >
                       {checkingSku
                         ? "Searching..."
@@ -470,7 +471,7 @@ export default function PosTerminal() {
                   </div>
 
                   {searchResults.length > 0 && (
-                    <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                    <div className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-lg md:rounded-xl">
                       {searchResults.map((item) => (
                         <button
                           key={item.id}
@@ -479,7 +480,7 @@ export default function PosTerminal() {
                             handleSearchSelect(item)
                           }
                           disabled={item.quantity <= 0}
-                          className="flex w-full items-center justify-between border-b border-slate-100 px-4 py-3 text-left last:border-b-0 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex min-h-[56px] w-full items-center justify-between border-b border-slate-100 px-4 py-3 text-left last:border-b-0 hover:bg-slate-50 active:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-slate-800">
@@ -510,9 +511,9 @@ export default function PosTerminal() {
 
           {/* RIGHT: CHECKOUT CART */}
           <div className="lg:col-span-5">
-            <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white shadow-sm md:sticky md:top-6 md:rounded-2xl">
 
-              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 md:px-5">
                 <div>
                   <h2 className="text-base font-bold text-slate-900">
                     Sale Checkout
@@ -527,7 +528,7 @@ export default function PosTerminal() {
                   <button
                     type="button"
                     onClick={clearCart}
-                    className="text-xs font-semibold text-rose-600 hover:text-rose-700"
+                    className="px-2 py-2 text-xs font-semibold text-rose-600 hover:text-rose-700 md:p-0"
                   >
                     Clear All
                   </button>
@@ -535,7 +536,7 @@ export default function PosTerminal() {
               </div>
 
               {/* CART ITEM LIST */}
-              <div className="max-h-[380px] divide-y divide-slate-100 overflow-y-auto p-4">
+              <div className="divide-y divide-slate-100 p-4 md:max-h-[380px] md:overflow-y-auto">
                 {cart.length === 0 ? (
                   <div className="py-12 text-center">
                     <p className="text-sm font-semibold text-slate-400">
@@ -550,7 +551,7 @@ export default function PosTerminal() {
                   cart.map(({ item, quantity }) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between py-3"
+                      className="flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between md:gap-0"
                     >
                       <div className="pr-2">
                         <p className="text-sm font-bold text-slate-800">
@@ -563,8 +564,8 @@ export default function PosTerminal() {
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50">
+                      <div className="flex items-center justify-between gap-2 md:justify-start">
+                        <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 md:rounded-lg">
 
                           <button
                             type="button"
@@ -574,12 +575,13 @@ export default function PosTerminal() {
                                 quantity - 1
                               )
                             }
-                            className="px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-200"
+                            aria-label={`Decrease ${item.name}`}
+                            className="flex h-11 w-11 items-center justify-center rounded-l-xl text-xl font-bold text-slate-600 active:bg-slate-200 md:h-auto md:w-auto md:rounded-none md:px-2.5 md:py-1 md:text-xs md:hover:bg-slate-200"
                           >
                             -
                           </button>
 
-                          <span className="px-2 text-xs font-bold text-slate-900">
+                          <span className="min-w-[2.5rem] px-2 text-center text-base font-bold text-slate-900 md:min-w-0 md:text-xs">
                             {quantity}
                           </span>
 
@@ -591,7 +593,8 @@ export default function PosTerminal() {
                                 quantity + 1
                               )
                             }
-                            className="px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-200"
+                            aria-label={`Increase ${item.name}`}
+                            className="flex h-11 w-11 items-center justify-center rounded-r-xl text-xl font-bold text-slate-600 active:bg-slate-200 md:h-auto md:w-auto md:rounded-none md:px-2.5 md:py-1 md:text-xs md:hover:bg-slate-200"
                           >
                             +
                           </button>
@@ -602,7 +605,8 @@ export default function PosTerminal() {
                           onClick={() =>
                             removeFromCart(item.id)
                           }
-                          className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                          aria-label={`Remove ${item.name}`}
+                          className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-400 hover:bg-rose-50 hover:text-rose-600 active:bg-rose-50 md:h-auto md:w-auto md:rounded-lg md:p-1"
                         >
                           ✕
                         </button>
@@ -613,14 +617,14 @@ export default function PosTerminal() {
               </div>
 
               {/* ACTION FOOTER */}
-              <div className="rounded-b-2xl border-t border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-b-3xl border-t border-slate-100 bg-slate-50 p-4 md:rounded-b-2xl">
                 <button
                   type="button"
                   onClick={handleCompleteSale}
                   disabled={
                     cart.length === 0 || loading
                   }
-                  className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                  className="w-full rounded-2xl bg-emerald-600 py-4 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 md:rounded-xl md:py-3 md:text-sm md:active:scale-100"
                 >
                   {loading
                     ? "Processing Sale..."
@@ -637,4 +641,3 @@ export default function PosTerminal() {
     </>
   );
 }
-

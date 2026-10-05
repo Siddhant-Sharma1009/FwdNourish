@@ -22,6 +22,14 @@ import RiskBadge from "../components/forecast/RiskBadge";
 import ItemForecastPanel from "../components/forecast/ItemForecastPanel";
 import { useAuth } from "../context/AuthContext";
 
+/*
+  MOBILE-FIRST NOTES
+  - Every phone-only style is paired with an sm:/md:/lg: class that restores
+    the original desktop value, so tablet/desktop render exactly as before.
+  - The desktop table inside <DataTable> is untouched.
+  - The phone cards show a label above every value.
+*/
+
 type TabKey =
   | "predictions"
   | "waste-risk"
@@ -92,91 +100,160 @@ function AIForecasting() {
 
       setError("");
 
-      try {
-        const results = await Promise.allSettled([
-          getSelectedModel(),
-          getPredictions(),
-          getInventoryRisk(),
-          getInventoryReorder(),
-          getHighRiskPredictions(),
-        ]);
+      /*
+       * Start all requests immediately.
+       *
+       * This keeps the requests parallel, but unlike the previous
+       * implementation, the entire page does not have to wait for
+       * all five requests to finish before becoming visible.
+       */
+      const modelPromise = getSelectedModel();
+      const predictionsPromise = getPredictions();
+      const riskPromise = getInventoryRisk();
+      const reorderPromise = getInventoryReorder();
+      const highRiskPromise = getHighRiskPredictions();
 
-        const [
-          modelRes,
-          predictionsRes,
-          riskRes,
-          reorderRes,
-          highRiskRes,
-        ] = results;
+      let firstResponseReceived = false;
+      let failedRequests = 0;
 
-        /* Model */
-
-        if (modelRes.status === "fulfilled") {
-          setModel(modelRes.value);
+      const hideInitialLoader = () => {
+        if (!firstResponseReceived) {
+          firstResponseReceived = true;
+          setLoading(false);
         }
+      };
 
-        /* Predictions */
+      /*
+       * Predictions
+       */
+      const predictionsTask = predictionsPromise
+        .then((result) => {
+          hideInitialLoader();
 
-        if (predictionsRes.status === "fulfilled") {
           setPredictions(
-            Array.isArray(predictionsRes.value)
-              ? predictionsRes.value
-              : []
+            Array.isArray(result) ? result : []
           );
-        }
+        })
+        .catch((err) => {
+          failedRequests++;
 
-        /* Waste Risk */
+          console.warn(
+            "Failed to load predictions:",
+            err
+          );
 
-        if (riskRes.status === "fulfilled") {
+          hideInitialLoader();
+        });
+
+      /*
+       * Model
+       */
+      const modelTask = modelPromise
+        .then((result) => {
+          hideInitialLoader();
+
+          setModel(result);
+        })
+        .catch((err) => {
+          failedRequests++;
+
+          console.warn(
+            "Failed to load selected AI model:",
+            err
+          );
+
+          hideInitialLoader();
+        });
+
+      /*
+       * Waste Risk
+       */
+      const riskTask = riskPromise
+        .then((result) => {
+          hideInitialLoader();
+
           setWasteRisks(
-            Array.isArray(riskRes.value)
-              ? riskRes.value
-              : []
+            Array.isArray(result) ? result : []
           );
-        }
+        })
+        .catch((err) => {
+          failedRequests++;
 
-        /* Reorders */
+          console.warn(
+            "Failed to load waste risk data:",
+            err
+          );
 
-        if (reorderRes.status === "fulfilled") {
+          hideInitialLoader();
+        });
+
+      /*
+       * Reorder Suggestions
+       */
+      const reorderTask = reorderPromise
+        .then((result) => {
+          hideInitialLoader();
+
           setReorders(
-            Array.isArray(reorderRes.value)
-              ? reorderRes.value
-              : []
+            Array.isArray(result) ? result : []
           );
-        }
+        })
+        .catch((err) => {
+          failedRequests++;
 
-        /* High Risk */
+          console.warn(
+            "Failed to load reorder suggestions:",
+            err
+          );
 
-        if (highRiskRes.status === "fulfilled") {
+          hideInitialLoader();
+        });
+
+      /*
+       * High Risk
+       */
+      const highRiskTask = highRiskPromise
+        .then((result) => {
+          hideInitialLoader();
+
           setHighRisk(
-            Array.isArray(highRiskRes.value)
-              ? highRiskRes.value
-              : []
+            Array.isArray(result) ? result : []
           );
-        }
+        })
+        .catch((err) => {
+          failedRequests++;
 
-        const allFailed = results.every(
-          (result) => result.status === "rejected"
-        );
-
-        if (allFailed) {
-          setError(
-            "Failed to load AI forecasting data."
+          console.warn(
+            "Failed to load high-risk predictions:",
+            err
           );
-        }
-      } catch (err) {
-        console.error(
-          "Failed to load forecasting data:",
-          err
-        );
 
+          hideInitialLoader();
+        });
+
+      /*
+       * Wait for all requests only so that refresh/loading state
+       * can be finalized. The UI itself is already visible.
+       */
+      await Promise.all([
+        predictionsTask,
+        modelTask,
+        riskTask,
+        reorderTask,
+        highRiskTask,
+      ]);
+
+      /*
+       * If every request failed, show the error.
+       */
+      if (failedRequests === 5) {
         setError(
           "Failed to load AI forecasting data."
         );
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
       }
+
+      setLoading(false);
+      setRefreshing(false);
     },
     []
   );
@@ -212,13 +289,14 @@ function AIForecasting() {
       setBatchStatus(result);
 
       /*
-       * The batch job may need some time to create the
-       * AIPrediction records.
+       * IMPORTANT:
+       *
+       * The previous implementation always waited 3 seconds here.
+       * That created an artificial delay even when the backend had
+       * already completed the batch.
+       *
+       * We now refresh immediately.
        */
-      await new Promise((resolve) =>
-        setTimeout(resolve, 3000)
-      );
-
       await loadData(false);
     } catch (err: any) {
       console.error(
@@ -228,8 +306,8 @@ function AIForecasting() {
 
       setError(
         err?.response?.data?.detail ||
-        err?.message ||
-        "Failed to start batch prediction run."
+          err?.message ||
+          "Failed to start batch prediction run."
       );
     } finally {
       setBatchRunning(false);
@@ -255,14 +333,16 @@ function AIForecasting() {
 
   const filteredPredictions = useMemo(() => {
     return predictions.filter((item) => {
+      const productName =
+        item.product_name?.toLowerCase() ?? "";
+
+      const sku =
+        item.sku?.toLowerCase() ?? "";
+
       const matchesSearch =
         !normalizedSearch ||
-        item.product_name
-          .toLowerCase()
-          .includes(normalizedSearch) ||
-        item.sku
-          ?.toLowerCase()
-          .includes(normalizedSearch);
+        productName.includes(normalizedSearch) ||
+        sku.includes(normalizedSearch);
 
       const matchesRisk =
         !riskFilter ||
@@ -282,14 +362,16 @@ function AIForecasting() {
 
   const filteredWasteRisks = useMemo(() => {
     return wasteRisks.filter((item) => {
+      const productName =
+        item.product_name?.toLowerCase() ?? "";
+
+      const sku =
+        item.sku?.toLowerCase() ?? "";
+
       const matchesSearch =
         !normalizedSearch ||
-        item.product_name
-          .toLowerCase()
-          .includes(normalizedSearch) ||
-        item.sku
-          ?.toLowerCase()
-          .includes(normalizedSearch);
+        productName.includes(normalizedSearch) ||
+        sku.includes(normalizedSearch);
 
       const matchesRisk =
         !riskFilter ||
@@ -309,14 +391,16 @@ function AIForecasting() {
 
   const filteredReorders = useMemo(() => {
     return reorders.filter((item) => {
+      const productName =
+        item.product_name?.toLowerCase() ?? "";
+
+      const sku =
+        item.sku?.toLowerCase() ?? "";
+
       return (
         !normalizedSearch ||
-        item.product_name
-          .toLowerCase()
-          .includes(normalizedSearch) ||
-        item.sku
-          ?.toLowerCase()
-          .includes(normalizedSearch)
+        productName.includes(normalizedSearch) ||
+        sku.includes(normalizedSearch)
       );
     });
   }, [reorders, normalizedSearch]);
@@ -327,14 +411,16 @@ function AIForecasting() {
 
   const filteredHighRisk = useMemo(() => {
     return highRisk.filter((item) => {
+      const productName =
+        item.product_name?.toLowerCase() ?? "";
+
+      const sku =
+        item.sku?.toLowerCase() ?? "";
+
       const matchesSearch =
         !normalizedSearch ||
-        item.product_name
-          .toLowerCase()
-          .includes(normalizedSearch) ||
-        item.sku
-          ?.toLowerCase()
-          .includes(normalizedSearch);
+        productName.includes(normalizedSearch) ||
+        sku.includes(normalizedSearch);
 
       const matchesRisk =
         !riskFilter ||
@@ -363,30 +449,47 @@ function AIForecasting() {
   }, [wasteRisks]);
 
   /* ---------------------------------------------------------------------- */
+  /* Reorder lookup                                                          */
+  /* ---------------------------------------------------------------------- */
+
+  const reorderByItemId = useMemo(() => {
+    const map = new Map<
+      number,
+      ReorderRecommendation
+    >();
+
+    reorders.forEach((item) => {
+      map.set(item.inventory_id, item);
+    });
+
+    return map;
+  }, [reorders]);
+
+  /* ---------------------------------------------------------------------- */
   /* Summary cards                                                           */
   /* ---------------------------------------------------------------------- */
 
   const summaryCounts = useMemo(() => {
-    const highRiskCount = predictions.filter(
-      (item) =>
+    let highRiskCount = 0;
+    let mediumRiskCount = 0;
+    let totalRecommendedPurchase = 0;
+
+    for (const item of predictions) {
+      if (
         item.risk_level === "HIGH" ||
         item.risk_level === "CRITICAL"
-    ).length;
+      ) {
+        highRiskCount++;
+      }
 
-    const mediumRiskCount = predictions.filter(
-      (item) =>
-        item.risk_level === "MEDIUM"
-    ).length;
+      if (item.risk_level === "MEDIUM") {
+        mediumRiskCount++;
+      }
 
-    const totalRecommendedPurchase =
-      predictions.reduce(
-        (total, item) =>
-          total +
-          Number(
-            item.recommended_purchase_quantity ?? 0
-          ),
-        0
+      totalRecommendedPurchase += Number(
+        item.recommended_purchase_quantity ?? 0
       );
+    }
 
     return {
       total: predictions.length,
@@ -442,7 +545,7 @@ function AIForecasting() {
   }
 
   /* ---------------------------------------------------------------------- */
-  /* Page                                                                     */
+  /* Page                                                                    */
   /* ---------------------------------------------------------------------- */
 
   return (
@@ -452,7 +555,7 @@ function AIForecasting() {
         <header className="px-1 pb-0 pt-3 sm:pt-0">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl ">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 AI{" "}
                 <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
                   Forecasting
@@ -463,11 +566,12 @@ function AIForecasting() {
                 Demand predictions, waste risk scoring, and reorder guidance
               </p>
             </div>
+
             <button
               type="button"
               onClick={handleRunBatchPrediction}
               disabled={batchRunning}
-              className="w-full rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              className="w-full touch-manipulation rounded-xl bg-green-600 px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition active:scale-[0.98] active:bg-green-700 hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:py-3 sm:active:scale-100"
             >
               {batchRunning ? (
                 <span className="flex items-center justify-center gap-2">
@@ -478,27 +582,27 @@ function AIForecasting() {
                 "⚡ Run Batch Prediction"
               )}
             </button>
-
           </div>
 
-          {/* Styled divider */}
           <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
             <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
             <div className="absolute left-0 top-0 h-[2px] w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
           </div>
         </header>
 
-
         {/* Error */}
 
         {error && (
-          <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div
+            role="alert"
+            className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:mb-6"
+          >
             <span>{error}</span>
 
             <button
               type="button"
               onClick={() => loadData(true)}
-              className="shrink-0 font-semibold underline"
+              className="shrink-0 touch-manipulation py-1 font-semibold underline"
             >
               Retry
             </button>
@@ -508,7 +612,7 @@ function AIForecasting() {
         {/* Batch status */}
 
         {batchStatus && (
-          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 sm:mb-6">
             <span className="font-semibold">
               Batch job {batchStatus.job_id}:
             </span>
@@ -526,12 +630,12 @@ function AIForecasting() {
 
         {/* Summary cards */}
 
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:gap-4 lg:grid-cols-4">
 
           {/* Items */}
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">
               Items Analyzed
             </p>
 
@@ -539,15 +643,15 @@ function AIForecasting() {
               {summaryCounts.total}
             </p>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 hidden text-xs text-slate-500 sm:block">
               AI predictions generated
             </p>
           </div>
 
           {/* High Risk */}
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">
               High / Critical Risk
             </p>
 
@@ -555,15 +659,15 @@ function AIForecasting() {
               {summaryCounts.highRisk}
             </p>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 hidden text-xs text-slate-500 sm:block">
               Items requiring attention
             </p>
           </div>
 
           {/* Medium Risk */}
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">
               Medium Risk
             </p>
 
@@ -571,25 +675,23 @@ function AIForecasting() {
               {summaryCounts.mediumRisk}
             </p>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 hidden text-xs text-slate-500 sm:block">
               Items worth monitoring
             </p>
           </div>
 
           {/* Recommended Purchase */}
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">
               Recommended Purchase
             </p>
 
             <p className="mt-2 text-2xl font-bold text-blue-600">
-              {summaryCounts.totalRecommendedPurchase.toFixed(
-                0
-              )}
+              {summaryCounts.totalRecommendedPurchase.toFixed(0)}
             </p>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 hidden text-xs text-slate-500 sm:block">
               Total units recommended
             </p>
           </div>
@@ -597,10 +699,10 @@ function AIForecasting() {
 
         {/* Model information */}
 
-        <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm sm:mb-6 sm:p-5">
+          <div className="flex items-center justify-between gap-3 sm:gap-4">
 
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 Active AI Model
               </p>
@@ -618,7 +720,7 @@ function AIForecasting() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-green-50 px-4 py-3">
+            <div className="shrink-0 rounded-xl bg-green-50 px-3 py-2.5 sm:px-4 sm:py-3">
               <p className="text-xs font-medium uppercase tracking-wide text-green-600">
                 Model Status
               </p>
@@ -632,24 +734,32 @@ function AIForecasting() {
 
         {/* Tabs + Controls */}
 
-        <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm md:p-5">
+        <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm sm:mb-6 md:p-5">
 
           {/* Tabs */}
 
-          <div className="flex flex-wrap gap-2">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`rounded-lg px-3.5 py-2 text-sm font-semibold transition ${activeTab === tab.key
-                    ? "bg-green-600 text-white shadow-sm"
-                    : "text-slate-600 hover:bg-slate-100"
+          <div className="flex items-center gap-2 sm:flex-wrap sm:items-stretch">
+            <div className="-mr-1 flex min-w-0 flex-1 gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:contents">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key)}
+                  aria-current={
+                    activeTab === tab.key
+                      ? "page"
+                      : undefined
+                  }
+                  className={`shrink-0 touch-manipulation whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition active:scale-[0.97] sm:rounded-lg sm:px-3.5 sm:py-2 sm:active:scale-100 ${
+                    activeTab === tab.key
+                      ? "bg-green-600 text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 sm:bg-transparent hover:bg-slate-100"
                   }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
             {/* Refresh */}
 
@@ -657,15 +767,23 @@ function AIForecasting() {
               type="button"
               onClick={() => loadData(false)}
               disabled={refreshing}
-              className="ml-auto rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+              aria-label="Refresh"
+              className="shrink-0 touch-manipulation rounded-full border border-slate-200 px-3.5 py-2.5 text-sm font-medium text-slate-600 transition active:bg-slate-100 hover:bg-slate-50 disabled:opacity-50 sm:ml-auto sm:rounded-lg sm:px-3 sm:py-2"
             >
               {refreshing ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-green-600" />
-                  Updating...
+                  <span className="hidden sm:inline">
+                    Updating...
+                  </span>
                 </span>
               ) : (
-                "↻ Refresh"
+                <>
+                  <span>↻</span>
+                  <span className="hidden sm:inline">
+                    {" "}Refresh
+                  </span>
+                </>
               )}
             </button>
           </div>
@@ -680,13 +798,15 @@ function AIForecasting() {
               </span>
 
               <input
-                type="text"
+                type="search"
+                enterKeyHint="search"
+                autoComplete="off"
                 placeholder="Search product name or SKU..."
                 value={search}
                 onChange={(e) =>
                   setSearch(e.target.value)
                 }
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-base outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100 sm:text-sm"
               />
             </div>
 
@@ -696,19 +816,23 @@ function AIForecasting() {
                 onChange={(e) =>
                   setRiskFilter(e.target.value)
                 }
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-700 outline-none transition focus:border-green-500 focus:bg-white focus:ring-2 focus:ring-green-100 sm:text-sm"
               >
                 <option value="">
                   All Risk Levels
                 </option>
 
-                <option value="LOW">Low</option>
+                <option value="LOW">
+                  Low
+                </option>
 
                 <option value="MEDIUM">
                   Medium
                 </option>
 
-                <option value="HIGH">High</option>
+                <option value="HIGH">
+                  High
+                </option>
 
                 <option value="CRITICAL">
                   Critical
@@ -726,7 +850,7 @@ function AIForecasting() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-medium text-slate-600 hover:bg-slate-200"
+                className="touch-manipulation rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-600 active:bg-slate-300 hover:bg-slate-200 sm:px-2.5 sm:py-1.5"
               >
                 Clear filters
               </button>
@@ -734,7 +858,7 @@ function AIForecasting() {
           )}
         </div>
 
-
+        {/* Predictions */}
 
         {activeTab === "predictions" && (
           <DataTable
@@ -745,6 +869,7 @@ function AIForecasting() {
                 ? "Run a batch prediction to generate demand forecasts."
                 : "Try changing your search or filters."
             }
+            mobileBadgeIndex={4}
             columns={[
               "Product",
               "SKU",
@@ -764,22 +889,27 @@ function AIForecasting() {
                 }),
 
               cells: [
-                <div>
+                <div key="product">
                   <span className="font-medium text-slate-800">
                     {item.product_name}
                   </span>
-
                 </div>,
 
-                <span className="text-slate-500">
+                <span
+                  key="sku"
+                  className="text-slate-500"
+                >
                   {item.sku ?? "—"}
                 </span>,
 
-                <span>
-                  {wasteRiskByItemId.get(item.inventory_id)?.current_stock ?? 0} units
+                <span key="stock">
+                  {wasteRiskByItemId.get(
+                    item.inventory_id
+                  )?.current_stock ?? 0}{" "}
+                  units
                 </span>,
 
-                <span>
+                <span key="demand">
                   {Number(
                     item.predicted_demand ?? 0
                   ).toFixed(1)}{" "}
@@ -787,18 +917,24 @@ function AIForecasting() {
                 </span>,
 
                 <RiskBadge
+                  key="risk"
                   level={item.risk_level}
                 />,
 
-                <span className="font-semibold text-blue-600">
+                <span
+                  key="purchase"
+                  className="font-semibold text-blue-600"
+                >
                   {Number(
-                    item.recommended_purchase_quantity ??
-                    0
+                    item.recommended_purchase_quantity ?? 0
                   ).toFixed(0)}{" "}
                   units
                 </span>,
 
-                <span className="text-slate-500">
+                <span
+                  key="date"
+                  className="text-slate-500"
+                >
                   {new Date(
                     item.forecast_date
                   ).toLocaleDateString()}
@@ -808,13 +944,14 @@ function AIForecasting() {
           />
         )}
 
-
+        {/* Waste Risk */}
 
         {activeTab === "waste-risk" && (
           <DataTable
             emptyIcon="🗑️"
             emptyTitle="No waste risk data"
             emptyMessage="No items have been scored for waste risk yet."
+            mobileBadgeIndex={3}
             columns={[
               "Product",
               "SKU",
@@ -834,15 +971,24 @@ function AIForecasting() {
                 }),
 
               cells: [
-                <span className="font-medium text-slate-800">
+                <span
+                  key="product"
+                  className="font-medium text-slate-800"
+                >
                   {item.product_name}
                 </span>,
 
-                <span className="text-slate-500">
+                <span
+                  key="sku"
+                  className="text-slate-500"
+                >
                   {item.sku ?? "—"}
                 </span>,
 
-                <span className="font-semibold">
+                <span
+                  key="score"
+                  className="font-semibold"
+                >
                   {Number(
                     item.risk_score ?? 0
                   ).toFixed(1)}
@@ -850,10 +996,12 @@ function AIForecasting() {
                 </span>,
 
                 <RiskBadge
+                  key="risk"
                   level={item.risk_level}
                 />,
 
                 <span
+                  key="expiry"
                   className={
                     item.days_to_expiry <= 2
                       ? "font-semibold text-red-600"
@@ -865,15 +1013,15 @@ function AIForecasting() {
                   {item.days_to_expiry} days
                 </span>,
 
-                <span>
+                <span key="stock">
                   {item.current_stock} units
                 </span>,
 
-                <span>
+                <span key="demand">
                   {item.predicted_demand != null
                     ? `${Number(
-                      item.predicted_demand
-                    ).toFixed(1)} units/day`
+                        item.predicted_demand
+                      ).toFixed(1)} units/day`
                     : "—"}
                 </span>,
               ],
@@ -881,6 +1029,7 @@ function AIForecasting() {
           />
         )}
 
+        {/* Reorder */}
 
         {activeTab === "reorder" && (
           <DataTable
@@ -904,39 +1053,54 @@ function AIForecasting() {
                 }),
 
               cells: [
-                <span className="font-medium text-slate-800">
+                <span
+                  key="product"
+                  className="font-medium text-slate-800"
+                >
                   {item.product_name}
                 </span>,
 
-                <span className="text-slate-500">
+                <span
+                  key="sku"
+                  className="text-slate-500"
+                >
                   {item.sku ?? "—"}
                 </span>,
 
-                <span>
+                <span key="stock">
                   {item.current_stock} units
                 </span>,
 
-                <span className="font-semibold text-blue-600">
+                <span
+                  key="order"
+                  className="font-semibold text-blue-600"
+                >
                   {Number(
                     item.recommended_quantity ?? 0
                   ).toFixed(0)}{" "}
                   units
                 </span>,
 
-                <span className="text-slate-500">
-                  {item.reason ?? "Based on forecasted demand"}
+                <span
+                  key="reason"
+                  className="text-slate-500"
+                >
+                  {item.reason ??
+                    "Based on forecasted demand"}
                 </span>,
               ],
             }))}
           />
         )}
 
+        {/* High Risk */}
 
         {activeTab === "high-risk" && (
           <DataTable
             emptyIcon="🚨"
             emptyTitle="No high-risk items"
             emptyMessage="Nothing is currently flagged as high or critical waste risk."
+            mobileBadgeIndex={4}
             columns={[
               "Product",
               "SKU",
@@ -956,24 +1120,32 @@ function AIForecasting() {
                 }),
 
               cells: [
-                <span className="font-medium text-slate-800">
+                <span
+                  key="product"
+                  className="font-medium text-slate-800"
+                >
                   {item.product_name}
                 </span>,
 
-                <span className="text-slate-500">
+                <span
+                  key="sku"
+                  className="text-slate-500"
+                >
                   {item.sku ?? "—"}
                 </span>,
 
-                <span>
-                  {wasteRiskByItemId.get(item.inventory_id)?.current_stock ??
-                    reorders.find(
-                      (reorder) =>
-                        reorder.inventory_id === item.inventory_id
+                <span key="stock">
+                  {wasteRiskByItemId.get(
+                    item.inventory_id
+                  )?.current_stock ??
+                    reorderByItemId.get(
+                      item.inventory_id
                     )?.current_stock ??
-                    0} units
+                    0}{" "}
+                  units
                 </span>,
 
-                <span>
+                <span key="demand">
                   {Number(
                     item.predicted_demand ?? 0
                   ).toFixed(1)}{" "}
@@ -981,17 +1153,24 @@ function AIForecasting() {
                 </span>,
 
                 <RiskBadge
+                  key="risk"
                   level={item.risk_level}
                 />,
 
-                <span className="font-semibold text-red-600">
+                <span
+                  key="score"
+                  className="font-semibold text-red-600"
+                >
                   {Number(
                     item.risk_score ?? 0
                   ).toFixed(1)}
                   /100
                 </span>,
 
-                <span className="text-slate-500">
+                <span
+                  key="date"
+                  className="text-slate-500"
+                >
                   {new Date(
                     item.forecast_date
                   ).toLocaleDateString()}
@@ -1000,10 +1179,7 @@ function AIForecasting() {
             }))}
           />
         )}
-
       </div>
-
-
 
       {selectedItem && (
         <ItemForecastPanel
@@ -1021,7 +1197,9 @@ function AIForecasting() {
   );
 }
 
-
+/* ====================================================================== */
+/* Data Table                                                              */
+/* ====================================================================== */
 
 interface DataTableRow {
   key: number | string;
@@ -1035,6 +1213,7 @@ interface DataTableProps {
   emptyIcon: string;
   emptyTitle: string;
   emptyMessage: string;
+  mobileBadgeIndex?: number;
 }
 
 function DataTable({
@@ -1043,9 +1222,8 @@ function DataTable({
   emptyIcon,
   emptyTitle,
   emptyMessage,
+  mobileBadgeIndex,
 }: DataTableProps) {
-
-
   if (rows.length === 0) {
     return (
       <div className="rounded-2xl bg-white px-6 py-12 text-center shadow-sm">
@@ -1063,7 +1241,6 @@ function DataTable({
       </div>
     );
   }
-
 
   return (
     <>
@@ -1117,51 +1294,62 @@ function DataTable({
             key={row.key}
             type="button"
             onClick={row.onClick}
-            className="block w-full rounded-2xl bg-white p-4 text-left shadow-sm transition hover:shadow-md sm:p-5"
+            className="block w-full touch-manipulation rounded-2xl bg-white p-4 text-left shadow-sm transition active:scale-[0.99] active:bg-slate-50 sm:p-5"
           >
-            {/* Product + risk */}
+            {/* Product + SKU + badge */}
 
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                {row.cells[0]}
+                <div className="text-[15px] leading-snug">
+                  {row.cells[0]}
+                </div>
+
+                <div className="mt-0.5 text-xs">
+                  {row.cells[1]}
+                </div>
               </div>
 
-              {row.cells.length > 4 && (
+              {mobileBadgeIndex !== undefined && (
                 <div className="shrink-0">
-                  {row.cells[
-                    row.cells.length >= 5
-                      ? 4
-                      : 2
-                  ]}
+                  {row.cells[mobileBadgeIndex]}
                 </div>
               )}
             </div>
 
-            {/* Other fields */}
+            {/* Labelled fields */}
 
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              {row.cells
-                .slice(1)
-                .map((cell, index) => {
-                  if (
-                    row.cells.length > 4 &&
-                    index === 3
-                  ) {
-                    return null;
-                  }
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {row.cells.map((cell, index) => {
+                if (
+                  index < 2 ||
+                  index === mobileBadgeIndex
+                ) {
+                  return null;
+                }
 
-                  return (
-                    <div
-                      key={index}
-                      className="min-w-0"
-                    >
+                const isWide =
+                  columns[index] === "Reason";
+
+                return (
+                  <div
+                    key={index}
+                    className={`min-w-0 rounded-xl bg-slate-50 px-3 py-2 ${
+                      isWide ? "col-span-2" : ""
+                    }`}
+                  >
+                    <p className="text-[11px] font-medium text-slate-400">
+                      {columns[index]}
+                    </p>
+
+                    <div className="mt-0.5 text-sm text-slate-800">
                       {cell}
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="mt-4 text-right text-xs font-medium text-green-600">
+            <div className="mt-3 text-right text-xs font-medium text-green-600">
               View details →
             </div>
           </button>
