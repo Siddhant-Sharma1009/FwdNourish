@@ -392,7 +392,7 @@ export default function AdminDashboard() {
                     </h3>
 
                     <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
-                      {u.role}
+                      {u.role === "TENANT" ? "BUSINESS" : u.role}
                     </span>
                   </div>
 
@@ -548,7 +548,7 @@ export default function AdminDashboard() {
 
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                        {u.role}
+                        {u.role === "TENANT" ? "BUSINESS" : u.role}
                       </span>
                     </td>
 

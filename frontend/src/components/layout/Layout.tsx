@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import Sidebar from "./Sidebar";
@@ -14,6 +14,19 @@ function Layout() {
     location.pathname === "/inventory/add" ||
     location.pathname === "/csv-upload" ||
     location.pathname === "/scanner";
+
+  // Reset page scroll position whenever the route changes
+  useEffect(() => {
+    const main = document.querySelector("main");
+
+    if (main) {
+      main.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "instant",
+      });
+    }
+  }, [location.pathname]);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-100">
@@ -37,10 +50,12 @@ function Layout() {
                 <InventoryEntryNav />
               </div>
             )}
+
             <Outlet />
           </div>
         </main>
       </div>
+
       <MobileBottomNav />
     </div>
   );

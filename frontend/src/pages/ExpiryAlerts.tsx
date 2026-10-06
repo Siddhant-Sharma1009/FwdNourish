@@ -4,16 +4,7 @@ import type { ExpiryStatus } from "../types/expiry";
 import { getExpiryAlerts } from "../services/expiryApi";
 import ExpiryBadge from "../components/inventory/ExpiryBadge";
 
-/*
-  MOBILE-FIRST NOTES
-  - Every phone-only style is paired with an sm:/md: class that restores the
-    original desktop value, so tablet/desktop render exactly as before.
-  - The desktop table is untouched.
-  - The phone list below is built with Tailwind only (no custom
-    "mobile-record" CSS classes needed any more).
-*/
 
-// Full class names so Tailwind can detect them.
 const TONES = {
   danger: {
     bar: "bg-rose-500",
@@ -104,11 +95,7 @@ function ExpiryAlerts() {
     (item) => item.days_remaining < 0
   ).length;
 
-  const criticalCount = alerts.filter(
-    (item) =>
-      item.days_remaining >= 0 &&
-      item.days_remaining <= 3
-  ).length;
+
 
   const warningCount = alerts.filter(
     (item) => item.days_remaining > 3
@@ -209,7 +196,7 @@ function ExpiryAlerts() {
                   </p>
 
                   <p className="mt-1.5 text-2xl font-bold text-orange-600 sm:mt-2 sm:text-slate-900">
-                    {criticalCount}
+                    {warningCount}
                   </p>
 
                   <p className="mt-1 hidden text-xs text-slate-500 sm:block">

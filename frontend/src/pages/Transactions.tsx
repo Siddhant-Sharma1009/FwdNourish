@@ -386,10 +386,7 @@ function Transactions() {
     return saleIds.size + individualSales;
   }, [transactions]);
 
-  const purchaseCount = transactions.filter(
-    (transaction) =>
-      transaction.transaction_type.toUpperCase() === "PURCHASE"
-  ).length;
+
 
   const donationCount = transactions.filter(
     (transaction) =>
@@ -482,10 +479,9 @@ function Transactions() {
           </p>
           <p className="text-xs text-emerald-100">Transaction records</p>
 
-          <div className="mt-4 grid grid-cols-4 gap-2">
+          <div className="mt-4 grid grid-cols-3 gap-2">
             {[
               { label: "Sales", value: saleCount, dot: "bg-rose-300" },
-              { label: "Purchases", value: purchaseCount, dot: "bg-blue-300" },
               { label: "Donations", value: donationCount, dot: "bg-emerald-300" },
               { label: "Waste", value: expiredCount, dot: "bg-orange-300" },
             ].map((item) => (
@@ -506,7 +502,7 @@ function Transactions() {
         </div>
 
         {/* SUMMARY CARDS (desktop) */}
-        <div className="mb-6 hidden grid-cols-2 gap-3 md:grid lg:grid-cols-5">
+        <div className="mb-6 hidden grid-cols-2 gap-3 md:grid lg:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Total
@@ -535,19 +531,7 @@ function Transactions() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-blue-500">
-              Purchases
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-blue-700">
-              {purchaseCount}
-            </p>
-
-            <p className="mt-1 text-xs text-slate-500">
-              Stock received
-            </p>
-          </div>
+          
 
           <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
             <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">

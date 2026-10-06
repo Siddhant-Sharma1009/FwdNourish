@@ -34,12 +34,17 @@ import NgoSignup from "./pages/auth/NgoSignup";
 import Pending from "./pages/auth/Pending";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+
 // ============================================================
 // ADMIN PAGES
 // ============================================================
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AccountReview from "./pages/admin/AccountReview";
+import PendingAccounts from "./pages/admin/PendingAccounts";
+import ActiveAccounts from "./pages/admin/ActiveAccounts";
+import SuspendedAccounts from "./pages/admin/SuspendedAccounts";
+import RejectedAccounts from "./pages/admin/RejectedAccounts";
 
 // ============================================================
 // NGO PAGES
@@ -89,6 +94,7 @@ export default function App() {
           path="/pending"
           element={<Pending />}
         />
+
         <Route
           path="/forgot-password"
           element={<ForgotPassword />}
@@ -110,10 +116,42 @@ export default function App() {
         >
           <Route element={<Layout />}>
 
+            {/* ==================================================
+                ADMIN DASHBOARD
+            ================================================== */}
+
             <Route
               path="/admin"
               element={<AdminDashboard />}
             />
+
+            {/* ==================================================
+                ACCOUNT STATUS PAGES
+            ================================================== */}
+
+            <Route
+              path="/admin/accounts/pending"
+              element={<PendingAccounts />}
+            />
+
+            <Route
+              path="/admin/accounts/active"
+              element={<ActiveAccounts />}
+            />
+
+            <Route
+              path="/admin/accounts/suspended"
+              element={<SuspendedAccounts />}
+            />
+
+            <Route
+              path="/admin/accounts/rejected"
+              element={<RejectedAccounts />}
+            />
+
+            {/* ==================================================
+                INDIVIDUAL ACCOUNT REVIEW
+            ================================================== */}
 
             <Route
               path="/admin/accounts/:userId"
@@ -154,13 +192,13 @@ export default function App() {
 
         {/* ======================================================
             SHARED PROFILE
-            Available to both TENANT and NGO
+            Available to ADMIN, TENANT and NGO
         ====================================================== */}
 
         <Route
           element={
             <ProtectedRoute
-              allowedRoles={["ADMIN","TENANT", "NGO"]}
+              allowedRoles={["ADMIN", "TENANT", "NGO"]}
             />
           }
         >
@@ -185,14 +223,18 @@ export default function App() {
         >
           <Route element={<Layout />}>
 
-            {/* MAIN DASHBOARD */}
+            {/* ==================================================
+                MAIN DASHBOARD
+            ================================================== */}
 
             <Route
               path="/dashboard"
               element={<Dashboard />}
             />
 
-            {/* Backward-compatible tenant route */}
+            {/* ==================================================
+                BACKWARD-COMPATIBLE TENANT ROUTE
+            ================================================== */}
 
             <Route
               path="/tenant"
@@ -204,7 +246,9 @@ export default function App() {
               }
             />
 
-            {/* INVENTORY */}
+            {/* ==================================================
+                INVENTORY
+            ================================================== */}
 
             <Route
               path="/inventory"
@@ -216,7 +260,9 @@ export default function App() {
               element={<AddInventory />}
             />
 
-            {/* OTHER INVENTORY FEATURES */}
+            {/* ==================================================
+                OTHER INVENTORY FEATURES
+            ================================================== */}
 
             <Route
               path="/expiry-alerts"
@@ -233,35 +279,45 @@ export default function App() {
               element={<Scanner />}
             />
 
-            {/* POS */}
+            {/* ==================================================
+                POS
+            ================================================== */}
 
             <Route
               path="/pos"
               element={<POSIntegration />}
             />
 
-            {/* AI FORECASTING */}
+            {/* ==================================================
+                AI FORECASTING
+            ================================================== */}
 
             <Route
               path="/ai-forecasting"
               element={<AIForecasting />}
             />
 
-            {/* SURPLUS FOOD */}
+            {/* ==================================================
+                SURPLUS FOOD
+            ================================================== */}
 
             <Route
               path="/surplus"
               element={<SurplusListings />}
             />
 
-            {/* BUSINESS PICKUPS */}
+            {/* ==================================================
+                BUSINESS PICKUPS
+            ================================================== */}
 
             <Route
               path="/pickups"
               element={<BusinessPickups />}
             />
 
-            {/* TRANSACTIONS */}
+            {/* ==================================================
+                TRANSACTIONS
+            ================================================== */}
 
             <Route
               path="/transactions"
