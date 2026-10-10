@@ -639,7 +639,7 @@ function SidebarContent({
             </h1>
 
             <p className="text-xs text-emerald-100/50">
-              Food waste platform
+              Food waste management platform
             </p>
           </div>
         </div>
