@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { ExpiryStatus } from "../types/expiry";
-import { getExpiryAlerts } from "../services/expiryApi";
+import { getExpiryStatuses } from "../services/expiryApi";
 import ExpiryBadge from "../components/inventory/ExpiryBadge";
 
 type StatusFilter = "ALL" | "EXPIRED" | "CRITICAL" | "WARNING" | "SAFE";
-type SortOption = "URGENT" | "NEAREST" | "FURTHEST" | "QUANTITY";
+type SortOption = "SAFE_TO_EXPIRED" | "EXPIRED_TO_SAFE";
 
 type ExpiryItem = ExpiryStatus & {
   // Optional fields are supported in case the API includes soft-delete metadata.
@@ -42,7 +42,7 @@ function ExpiryAlerts() {
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-  const [sortBy, setSortBy] = useState<SortOption>("URGENT");
+  const [sortBy, setSortBy] = useState<SortOption>("EXPIRED_TO_SAFE");
 
   useEffect(() => {
     let cancelled = false;
@@ -52,7 +52,9 @@ function ExpiryAlerts() {
       setLoadError("");
 
       try {
-        const data = await getExpiryAlerts();
+        // Use the all-items endpoint (GET /api/v1/expiry/), not /alerts.
+        // The /alerts endpoint intentionally omits safe inventory items.
+        const data = await getExpiryStatuses();
         if (!cancelled) {
           // Defensive frontend filter. The API should also exclude soft-deleted rows.
           setAlerts((data as ExpiryItem[]).filter((item) => !isSoftDeleted(item)));
@@ -91,29 +93,17 @@ function ExpiryAlerts() {
     });
 
     return [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case "URGENT":
-        case "NEAREST":
-          return (
-            a.days_remaining - b.days_remaining ||
-            String(a.name).localeCompare(String(b.name))
-          );
-        case "FURTHEST":
-          return (
-            b.days_remaining - a.days_remaining ||
-            String(a.name).localeCompare(String(b.name))
-          );
-        case "QUANTITY":
-          return (
-            b.quantity - a.quantity ||
-            a.days_remaining - b.days_remaining
-          );
-        default:
-          return 0;
-      }
+      // Expired to safe: most overdue first, then nearest expiry, then safe items.
+      // Safe to expired: furthest expiry first, with expired items at the end.
+      const difference =
+        sortBy === "EXPIRED_TO_SAFE"
+          ? a.days_remaining - b.days_remaining
+          : b.days_remaining - a.days_remaining;
+      return difference || String(a.name).localeCompare(String(b.name));
     });
   }, [activeAlerts, search, statusFilter, sortBy]);
 
+  const totalItemsCount = activeAlerts.length;
   const expiredCount = activeAlerts.filter(
     (item) => item.days_remaining < 0,
   ).length;
@@ -130,7 +120,7 @@ function ExpiryAlerts() {
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("ALL");
-    setSortBy("URGENT");
+    setSortBy("EXPIRED_TO_SAFE");
   };
 
   if (loading) {
@@ -180,7 +170,13 @@ function ExpiryAlerts() {
         </div>
       )}
 
-      <section aria-label="Expiry summary" className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+      <section aria-label="Expiry summary" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 sm:gap-4">
+        <SummaryCard
+          label="Total Items"
+          value={totalItemsCount}
+          description="Active inventory items"
+          tone="emerald"
+        />
         <SummaryCard
           label="Expired"
           value={expiredCount}
@@ -252,10 +248,8 @@ function ExpiryAlerts() {
               onChange={(event) => setSortBy(event.target.value as SortOption)}
               className={fieldClass}
             >
-              <option value="URGENT">Most urgent first</option>
-              <option value="NEAREST">Nearest expiry</option>
-              <option value="FURTHEST">Furthest expiry</option>
-              <option value="QUANTITY">Highest quantity</option>
+              <option value="SAFE_TO_EXPIRED">Safe to Expired</option>
+              <option value="EXPIRED_TO_SAFE">Expired to Safe</option>
             </select>
           </div>
         </div>
@@ -265,7 +259,7 @@ function ExpiryAlerts() {
             Showing <span className="font-semibold text-slate-800">{filteredAlerts.length}</span> of{" "}
             <span className="font-semibold text-slate-800">{activeAlerts.length}</span> active items
           </p>
-          {(search || statusFilter !== "ALL" || sortBy !== "URGENT") && (
+          {(search || statusFilter !== "ALL" || sortBy !== "EXPIRED_TO_SAFE") && (
             <button
               type="button"
               onClick={clearFilters}
@@ -280,7 +274,7 @@ function ExpiryAlerts() {
       {activeAlerts.length === 0 ? (
         <EmptyState
           title="No expiry alerts"
-          description="There are no active inventory items returned by the expiry alerts service."
+          description="There are no active inventory items returned by the expiry status service."
         />
       ) : filteredAlerts.length === 0 ? (
         <EmptyState
