@@ -15,13 +15,7 @@ def haversine_distance(
     lat2: float,
     lon2: float,
 ) -> float:
-    """
-    Calculate distance between two geographic coordinates
-    using the Haversine formula.
 
-    Returns:
-        Distance in kilometers.
-    """
 
     earth_radius = 6371.0
 
@@ -47,14 +41,7 @@ def food_similarity(
     food1: str,
     food2: str,
 ) -> float:
-    """
-    Calculate similarity between two food types.
 
-    Examples:
-        Cooked Food vs Cooked Food -> 1.0
-        Rice vs Rice -> 1.0
-        Cooked Rice vs Rice -> high similarity
-    """
 
     a = food1.lower().strip()
     b = food2.lower().strip()
@@ -98,12 +85,7 @@ def quantity_score(
     available_quantity: float,
     required_quantity: float,
 ) -> float:
-    """
-    Calculate compatibility between available
-    and required quantity.
 
-    Returns a value between 0 and 1.
-    """
 
     if (
         available_quantity <= 0
@@ -121,13 +103,7 @@ def location_score(
     distance_km: float,
     maximum_distance_km: float = 50.0,
 ) -> float:
-    """
-    Convert geographic distance into a score between 0 and 1.
 
-    0 km       -> 1.0
-    25 km      -> 0.5
-    50+ km     -> 0.0
-    """
 
     if distance_km >= maximum_distance_km:
         return 0.0
@@ -145,18 +121,7 @@ def calculate_match_score(
     listing: SurplusListing,
     requirement: NGORequirement,
 ) -> tuple[float, float]:
-    """
-    Calculate the overall NGO matching score.
 
-    Weighting:
-
-        Food type  = 50%
-        Quantity   = 30%
-        Location   = 20%
-
-    Returns:
-        (match_score, distance_km)
-    """
 
     distance = haversine_distance(
         listing.latitude,
@@ -197,11 +162,7 @@ def find_matches(
     listing: SurplusListing,
     limit: int = 10,
 ):
-    """
-    Find the best NGO requirements for a surplus listing.
 
-    Only active NGO requirements are considered.
-    """
 
     requirements = (
         db.query(NGORequirement)

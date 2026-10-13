@@ -3,12 +3,6 @@ import { uploadInventoryCSV } from "../services/csvApi";
 
 type UploadResult = Awaited<ReturnType<typeof uploadInventoryCSV>>;
 
-/*
-  MOBILE-FIRST NOTES
-  - Every phone-only style is paired with an sm: class that restores the
-    original desktop value, so screens >= 640px render exactly as before.
-  - Logic (state, validation, upload, drag & drop) is unchanged.
-*/
 
 function CSVUpload() {
   const tenantId = 1;

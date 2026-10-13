@@ -40,11 +40,9 @@ def start_scheduler():
     if scheduler.running:
         return
 
-    # Run once when the application starts
     run_expiry_check()
     run_ai_batch_prediction()
 
-    # Daily expiry check at 00:00 IST
     scheduler.add_job(
         run_expiry_check,
         trigger=CronTrigger(
@@ -56,12 +54,11 @@ def start_scheduler():
         replace_existing=True
     )
 
-    # Daily AI prediction at 00:30 IST
     scheduler.add_job(
         run_ai_batch_prediction,
         trigger=CronTrigger(
             hour=0,
-            minute=30,
+            minute=0,
             timezone="Asia/Kolkata"
         ),
         id="ai_batch_prediction",

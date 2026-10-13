@@ -10,10 +10,7 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  /*
-   * Wait until AuthContext finishes checking
-   * the stored access token.
-   */
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-100">
@@ -24,9 +21,7 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
     );
   }
 
-  /*
-   * User is not logged in.
-   */
+ 
   if (!user) {
     return (
       <Navigate
@@ -37,20 +32,11 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
     );
   }
 
-  /*
-   * Check whether the logged-in user's role
-   * is allowed to access the current route.
-   */
+
   if (allowedRoles.includes(user.role)) {
     return <Outlet />;
   }
 
-  /*
-   * User is authenticated but is trying to
-   * access another role's protected route.
-   *
-   * Send them to their own existing page.
-   */
 
   if (user.role === "ADMIN") {
     return <Navigate to="/admin" replace />;
@@ -64,8 +50,6 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  /*
-   * Unknown role.
-   */
+
   return <Navigate to="/login" replace />;
 }

@@ -300,12 +300,7 @@ export default function TenantSignup() {
 
       <FormErrorSummary errors={errors} />
 
-      {/* 
-        IMPORTANT:
-        This is intentionally NOT a <form>.
-        This signup is a 4-step wizard and each step
-        is controlled explicitly with buttons.
-      */}
+    
       <div className="space-y-6">
 
         {/* STEP 1 */}

@@ -323,13 +323,6 @@ export default function NgoSignup() {
 
       <FormErrorSummary errors={errors} />
 
-      {/* ============================================================
-          MULTI-STEP CONTENT
-
-          IMPORTANT:
-          This is intentionally a <div>, NOT a <form>.
-          Continue therefore cannot trigger browser form submission.
-      ============================================================ */}
 
       <div className="space-y-6">
 

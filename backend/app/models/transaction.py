@@ -1,10 +1,7 @@
 from datetime import datetime
-
 from sqlalchemy import DateTime, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from app.core.database import Base
-
 
 class Transaction(Base):
     __tablename__ = "transactions"
@@ -26,8 +23,6 @@ class Transaction(Base):
         index=True,
     )
 
-    # Links a DONATION transaction to the exact donation record.
-    # NULL for SALE, PURCHASE, WASTE, ADJUSTMENT, etc.
     donation_id: Mapped[int | None] = mapped_column(
         ForeignKey("donations.id"),
         nullable=True,

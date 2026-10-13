@@ -8,10 +8,6 @@ from app.services.expiry_service import get_expiry_status
 
 
 def check_expiry_for_all_inventory(db: Session):
-    """
-    Check expiry status for all inventory items
-    and create/update expiry alerts.
-    """
 
     inventory_items = db.query(Inventory).all()
 

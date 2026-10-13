@@ -1,8 +1,3 @@
-"""Create the first platform administrator.
-
-Run from backend:
-    python -m app.scripts.create_admin
-"""
 import getpass
 
 from app.core.database import Base, engine, SessionLocal

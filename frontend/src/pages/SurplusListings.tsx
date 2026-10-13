@@ -477,8 +477,7 @@ function SurplusListings() {
     let availableUntilIso: string | undefined;
 
     if (availableUntil) {
-      // datetime-local already contains the user's local wall-clock value.
-      // Keep it unchanged so the AI preview receives the exact selected time.
+ 
       availableUntilIso = availableUntil;
     }
 

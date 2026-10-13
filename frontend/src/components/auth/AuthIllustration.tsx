@@ -1,8 +1,5 @@
 import type { ReactNode } from "react";
 
-/* =========================================================
-   Redistribution flow + globe
-========================================================= */
 
 export default function AuthIllustration() {
   return (

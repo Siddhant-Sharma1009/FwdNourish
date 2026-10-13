@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 type Tab = {
   path: string;
-  glyph: string; // desktop icon (unchanged)
-  icon: ReactNode; // mobile icon
-  fullLabel: string; // desktop label (unchanged)
-  shortLabel: string; // mobile label
+  glyph: string; 
+  icon: ReactNode; 
+  fullLabel: string; 
+  shortLabel: string; 
 };
 
 const iconProps = {

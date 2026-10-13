@@ -8,12 +8,7 @@ import type { InventoryCreate } from "../types/inventory";
 import { getCategories } from "../services/categoryApi";
 import { createInventory } from "../services/inventoryApi";
 
-/*
-  MOBILE-FIRST NOTES
-  - Every phone-only style is paired with an sm:/md: class that restores the
-    original desktop value, so screens >= 640px render exactly as before.
-  - Inputs use text-base on phones (16px) so iOS Safari doesn't zoom on focus.
-*/
+
 
 const fieldClass =
   "h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 text-base text-slate-800 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50 sm:h-11 sm:text-sm";
@@ -21,7 +16,6 @@ const fieldClass =
 const labelClass =
   "mb-1.5 block text-sm font-semibold text-slate-700 sm:mb-2";
 
-// Phones: full-width row inside the 2-col grid. sm: back to original 1 col.
 const fullRow = "col-span-2 sm:col-span-1";
 
 function AddInventory() {
@@ -61,8 +55,7 @@ function AddInventory() {
     loadCategories();
   }, []);
 
-  // Phones only: bring the success / error banner into view after submit,
-  // since the submit button is at the bottom and the banner is at the top.
+
   useEffect(() => {
     if (!message && !error) return;
     if (window.matchMedia("(max-width: 639px)").matches) {
