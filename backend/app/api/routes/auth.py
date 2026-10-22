@@ -2,6 +2,9 @@ import hashlib
 import secrets
 import os
 
+import logging
+
+from app.core.config import settings
 from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 from app.services.email_service import send_password_reset_email
@@ -29,6 +32,7 @@ from app.schemas.auth import (
 
 from typing import Optional
 
+logger = logging.getLogger(__name__)
 
 class ForgotPasswordRequest(BaseModel):
     email: str
@@ -568,8 +572,7 @@ def forgot_password(
         .first()
     )
 
-    # Always return the same response.
-    # This prevents email/account enumeration.
+ 
     generic_response = {
         "message": (
             "If an account with that email exists, "
@@ -580,10 +583,9 @@ def forgot_password(
     if not user:
         return generic_response
 
-    # Generate secure random token.
+    
     raw_token = secrets.token_urlsafe(48)
 
-    # Store only the hash in the database.
     token_hash = hashlib.sha256(
         raw_token.encode("utf-8")
     ).hexdigest()
@@ -595,10 +597,7 @@ def forgot_password(
 
     db.commit()
 
-    frontend_url = (
-        os.getenv("FRONTEND_URL")
-        or os.getenv("CLIENT_URL")
-    )
+    frontend_url = settings.FRONTEND_URL.rstrip("/")
 
     if not frontend_url:
         raise HTTPException(
@@ -613,21 +612,21 @@ def forgot_password(
     )
 
     try:
-        send_password_reset_email(
-            to_email=user.email,
-            reset_url=reset_url,
+      send_password_reset_email(
+        to_email=user.email,
+        reset_url=reset_url,
         )
     except Exception:
-        # Don't leave a valid reset token behind
-        # if email delivery failed.
+        logger.exception("Password reset email delivery failed")
+
         user.reset_password_token = None
         user.reset_password_expires = None
         db.commit()
 
         raise HTTPException(
-            status_code=500,
-            detail="Unable to send password reset email.",
-        )
+        status_code=500,
+        detail="Unable to send password reset email.",
+    )
 
     return generic_response
 
@@ -665,8 +664,6 @@ def reset_password(
         )
 
     user.password_hash = hash_password(password)
-
-    # Invalidate the reset token immediately.
     user.reset_password_token = None
     user.reset_password_expires = None
 

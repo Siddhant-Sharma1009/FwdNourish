@@ -1,7 +1,22 @@
+import os
+from pathlib import Path
 from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
+
+# Load backend/.env before importing application settings
+BASE_DIR = Path(__file__).resolve().parent.parent
+ENV_PATH = BASE_DIR / ".env"
+
+load_dotenv(ENV_PATH)
+
+print("Environment file exists:", ENV_PATH.exists())
+print("FRONTEND_URL:", repr(os.getenv("FRONTEND_URL")))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app import models  
+
+from app import models
 from app.core.database import Base, engine
 from app.api.forecasting import router as forecasting_router
 from app.api.routes import (
@@ -23,6 +38,7 @@ from app.api.routes import (
 )
 from app.core.scheduler import start_scheduler, stop_scheduler
 from app.core.config import settings
+
 
 Base.metadata.create_all(bind=engine)
 

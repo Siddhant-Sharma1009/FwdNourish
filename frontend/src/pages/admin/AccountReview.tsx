@@ -353,14 +353,7 @@ export default function AccountReview() {
               value={user.phone}
             />
 
-            <Info
-              label="Tenant ID"
-              value={
-                user.tenant_id
-                  ? String(user.tenant_id)
-                  : null
-              }
-            />
+                  
           </div>
         </Section>
 

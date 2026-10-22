@@ -176,7 +176,7 @@ export default function AdminAccountStatusPage({
               </span>
             </div>
 
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl ">
               {title}
             </h1>
 

@@ -1103,38 +1103,6 @@ function AIForecasting() {
 
             </div>
 
-
-
-            <button
-
-              type="button"
-
-              onClick={handleRunBatchPrediction}
-
-              disabled={batchRunning}
-
-              className="w-full touch-manipulation rounded-xl bg-green-600 px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition active:scale-[0.98] active:bg-green-700 hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:py-3 sm:active:scale-100"
-
-            >
-
-              {batchRunning ? (
-
-                <span className="flex items-center justify-center gap-2">
-
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-green-200 border-t-white" />
-
-                  Running prediction...
-
-                </span>
-
-              ) : (
-
-                "⚡ Run Batch Prediction"
-
-              )}
-
-            </button>
-
           </div>
 
 
