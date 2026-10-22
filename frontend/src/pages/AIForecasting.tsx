@@ -1,64 +1,95 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import type { ReactNode } from "react";
+
 import type {
+
   AIModel,
+
   Prediction,
+
   WasteRisk,
+
   ReorderRecommendation,
-  BatchPredictionRun,
+
 } from "../types/forecast";
 
 import {
+
   getSelectedModel,
+
   getPredictions,
+
   getInventoryRisk,
+
   getInventoryReorder,
+
   getHighRiskPredictions,
-  runBatchPrediction,
+
 } from "../services/forecastApi";
 
-
-
 import RiskBadge from "../components/forecast/RiskBadge";
+
 import ItemForecastPanel from "../components/forecast/ItemForecastPanel";
+
 import { useAuth } from "../context/AuthContext";
 
 type ForecastRecordWithDeleteMetadata = {
+
   is_deleted?: boolean;
+
   deleted?: boolean;
+
   deleted_at?: string | null;
+
   is_active?: boolean;
+
 };
 
 function isDeletedForecastRecord(item: unknown): boolean {
+
   if (!item || typeof item !== "object") return false;
+
   const record = item as ForecastRecordWithDeleteMetadata;
+
   return (
+
     record.is_deleted === true ||
+
     record.deleted === true ||
+
     record.is_active === false ||
+
     Boolean(record.deleted_at)
+
   );
+
 }
 
 type TabKey =
 
   | "predictions"
+
   | "waste-risk"
+
   | "reorder"
+
   | "high-risk";
-
-
 
 const TABS: { key: TabKey; label: string }[] = [
 
   {
+
     key: "predictions",
+
     label: "Predictions",
+
   },
 
   {
+
     key: "waste-risk",
+
     label: "Waste Risk",
 
   },
@@ -81,17 +112,11 @@ const TABS: { key: TabKey; label: string }[] = [
 
 ];
 
-
-
 function AIForecasting() {
 
   const { user, loading: authLoading } = useAuth();
 
-
-
   const [model, setModel] = useState<AIModel | null>(null);
-
-
 
   const [predictions, setPredictions] = useState<Prediction[]>([]);
 
@@ -105,19 +130,13 @@ function AIForecasting() {
 
   const [highRisk, setHighRisk] = useState<Prediction[]>([]);
 
-
-
   const [activeTab, setActiveTab] =
 
     useState<TabKey>("predictions");
 
-
-
   const [search, setSearch] = useState("");
 
   const [riskFilter, setRiskFilter] = useState("");
-
-
 
   const [selectedItem, setSelectedItem] = useState<{
 
@@ -127,31 +146,11 @@ function AIForecasting() {
 
   } | null>(null);
 
-
-
   const [loading, setLoading] = useState(true);
 
   const [refreshing, setRefreshing] = useState(false);
 
   const [error, setError] = useState("");
-
-
-
-  const [batchRunning, setBatchRunning] = useState(false);
-
-  const [batchStatus, setBatchStatus] =
-
-    useState<BatchPredictionRun | null>(null);
-
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Load data                                                               */
-
-  /* ---------------------------------------------------------------------- */
-
-
 
   const loadData = useCallback(
 
@@ -167,25 +166,7 @@ function AIForecasting() {
 
       }
 
-
-
       setError("");
-
-
-
-      /**
-
-*       * Start all requests immediately.*
-
-*       **
-
-*       * This keeps the requests parallel, but unlike the previous*
-
-*       * implementation, the entire page does not have to wait for*
-
-*       * all five requests to finish before becoming visible.*
-
-*       */
 
       const modelPromise = getSelectedModel();
 
@@ -197,13 +178,9 @@ function AIForecasting() {
 
       const highRiskPromise = getHighRiskPredictions();
 
-
-
       let firstResponseReceived = false;
 
       let failedRequests = 0;
-
-
 
       const hideInitialLoader = () => {
 
@@ -217,21 +194,11 @@ function AIForecasting() {
 
       };
 
-
-
-      /**
-
-*       * Predictions*
-
-*       */
-
       const predictionsTask = predictionsPromise
 
         .then((result) => {
 
           hideInitialLoader();
-
-
 
           setPredictions(
 
@@ -245,8 +212,6 @@ function AIForecasting() {
 
           failedRequests++;
 
-
-
           console.warn(
 
             "Failed to load predictions:",
@@ -255,27 +220,15 @@ function AIForecasting() {
 
           );
 
-
-
           hideInitialLoader();
 
         });
-
-
-
-      /**
-
-*       * Model*
-
-*       */
 
       const modelTask = modelPromise
 
         .then((result) => {
 
           hideInitialLoader();
-
-
 
           setModel(result);
 
@@ -285,8 +238,6 @@ function AIForecasting() {
 
           failedRequests++;
 
-
-
           console.warn(
 
             "Failed to load selected AI model:",
@@ -295,27 +246,15 @@ function AIForecasting() {
 
           );
 
-
-
           hideInitialLoader();
 
         });
-
-
-
-      /**
-
-*       * Waste Risk*
-
-*       */
 
       const riskTask = riskPromise
 
         .then((result) => {
 
           hideInitialLoader();
-
-
 
           setWasteRisks(
 
@@ -329,8 +268,6 @@ function AIForecasting() {
 
           failedRequests++;
 
-
-
           console.warn(
 
             "Failed to load waste risk data:",
@@ -339,27 +276,15 @@ function AIForecasting() {
 
           );
 
-
-
           hideInitialLoader();
 
         });
-
-
-
-      /**
-
-*       * Reorder Suggestions*
-
-*       */
 
       const reorderTask = reorderPromise
 
         .then((result) => {
 
           hideInitialLoader();
-
-
 
           setReorders(
 
@@ -373,8 +298,6 @@ function AIForecasting() {
 
           failedRequests++;
 
-
-
           console.warn(
 
             "Failed to load reorder suggestions:",
@@ -383,27 +306,15 @@ function AIForecasting() {
 
           );
 
-
-
           hideInitialLoader();
 
         });
-
-
-
-      /**
-
-*       * High Risk*
-
-*       */
 
       const highRiskTask = highRiskPromise
 
         .then((result) => {
 
           hideInitialLoader();
-
-
 
           setHighRisk(
 
@@ -417,8 +328,6 @@ function AIForecasting() {
 
           failedRequests++;
 
-
-
           console.warn(
 
             "Failed to load high-risk predictions:",
@@ -427,21 +336,9 @@ function AIForecasting() {
 
           );
 
-
-
           hideInitialLoader();
 
         });
-
-
-
-      /**
-
-*       * Wait for all requests only so that refresh/loading state*
-
-*       * can be finalized. The UI itself is already visible.*
-
-*       */
 
       await Promise.all([
 
@@ -457,14 +354,6 @@ function AIForecasting() {
 
       ]);
 
-
-
-      /**
-
-*       * If every request failed, show the error.*
-
-*       */
-
       if (failedRequests === 5) {
 
         setError(
@@ -474,8 +363,6 @@ function AIForecasting() {
         );
 
       }
-
-
 
       setLoading(false);
 
@@ -487,16 +374,6 @@ function AIForecasting() {
 
   );
 
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Initial load                                                            */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
   useEffect(() => {
 
     if (authLoading) {
@@ -504,8 +381,6 @@ function AIForecasting() {
       return;
 
     }
-
-
 
     if (!user) {
 
@@ -515,97 +390,9 @@ function AIForecasting() {
 
     }
 
-
-
     void loadData(true);
 
   }, [authLoading, user, loadData]);
-
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Batch prediction                                                        */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
-  async function handleRunBatchPrediction() {
-
-    setBatchRunning(true);
-
-    setError("");
-
-
-
-    try {
-
-      const result = await runBatchPrediction();
-
-
-
-      setBatchStatus(result);
-
-
-
-      /**
-
-*       * IMPORTANT:*
-
-*       **
-
-*       * The previous implementation always waited 3 seconds here.*
-
-*       * That created an artificial delay even when the backend had*
-
-*       * already completed the batch.*
-
-*       **
-
-*       * We now refresh immediately.*
-
-*       */
-
-      await loadData(false);
-
-    } catch (err: any) {
-
-      console.error(
-
-        "Batch prediction failed:",
-
-        err
-
-      );
-
-
-
-      const statusCode = err?.response?.status;
-      const serverDetail = err?.response?.data?.detail;
-      setError(
-        statusCode === 403
-          ? (serverDetail || "Your account does not have permission to run batch predictions. The backend endpoint must authorize your business role and tenant.")
-          : (serverDetail || err?.message || "Failed to start batch prediction run.")
-      );
-
-    } finally {
-
-      setBatchRunning(false);
-
-    }
-
-  }
-
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Filters                                                                 */
-
-  /* ---------------------------------------------------------------------- */
-
-
 
   function clearFilters() {
 
@@ -615,23 +402,11 @@ function AIForecasting() {
 
   }
 
-
-
   const normalizedSearch = search
 
     .trim()
 
     .toLowerCase();
-
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Filtered Predictions                                                    */
-
-  /* ---------------------------------------------------------------------- */
-
-
 
   const filteredPredictions = useMemo(() => {
 
@@ -641,13 +416,9 @@ function AIForecasting() {
 
         item.product_name?.toLowerCase() ?? "";
 
-
-
       const sku =
 
         item.sku?.toLowerCase() ?? "";
-
-
 
       const matchesSearch =
 
@@ -657,15 +428,11 @@ function AIForecasting() {
 
         sku.includes(normalizedSearch);
 
-
-
       const matchesRisk =
 
         !riskFilter ||
 
         item.risk_level === riskFilter;
-
-
 
       return matchesSearch && matchesRisk;
 
@@ -681,16 +448,6 @@ function AIForecasting() {
 
   ]);
 
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Filtered Waste Risk                                                     */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
   const filteredWasteRisks = useMemo(() => {
 
     return wasteRisks.filter((item) => {
@@ -699,13 +456,9 @@ function AIForecasting() {
 
         item.product_name?.toLowerCase() ?? "";
 
-
-
       const sku =
 
         item.sku?.toLowerCase() ?? "";
-
-
 
       const matchesSearch =
 
@@ -715,15 +468,11 @@ function AIForecasting() {
 
         sku.includes(normalizedSearch);
 
-
-
       const matchesRisk =
 
         !riskFilter ||
 
         item.risk_level === riskFilter;
-
-
 
       return matchesSearch && matchesRisk;
 
@@ -739,16 +488,6 @@ function AIForecasting() {
 
   ]);
 
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Filtered Reorders                                                       */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
   const filteredReorders = useMemo(() => {
 
     return reorders.filter((item) => {
@@ -757,13 +496,9 @@ function AIForecasting() {
 
         item.product_name?.toLowerCase() ?? "";
 
-
-
       const sku =
 
         item.sku?.toLowerCase() ?? "";
-
-
 
       return (
 
@@ -779,16 +514,6 @@ function AIForecasting() {
 
   }, [reorders, normalizedSearch]);
 
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* High Risk                                                               */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
   const filteredHighRisk = useMemo(() => {
 
     return highRisk.filter((item) => {
@@ -797,13 +522,9 @@ function AIForecasting() {
 
         item.product_name?.toLowerCase() ?? "";
 
-
-
       const sku =
 
         item.sku?.toLowerCase() ?? "";
-
-
 
       const matchesSearch =
 
@@ -813,15 +534,11 @@ function AIForecasting() {
 
         sku.includes(normalizedSearch);
 
-
-
       const matchesRisk =
 
         !riskFilter ||
 
         item.risk_level === riskFilter;
-
-
 
       return matchesSearch && matchesRisk;
 
@@ -837,21 +554,9 @@ function AIForecasting() {
 
   ]);
 
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Waste risk lookup                                                       */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
   const wasteRiskByItemId = useMemo(() => {
 
     const map = new Map<number, WasteRisk>();
-
-
 
     wasteRisks.forEach((item) => {
 
@@ -859,21 +564,9 @@ function AIForecasting() {
 
     });
 
-
-
     return map;
 
   }, [wasteRisks]);
-
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Reorder lookup                                                          */
-
-  /* ---------------------------------------------------------------------- */
-
-
 
   const reorderByItemId = useMemo(() => {
 
@@ -885,29 +578,15 @@ function AIForecasting() {
 
     >();
 
-
-
     reorders.forEach((item) => {
 
       map.set(item.inventory_id, item);
 
     });
 
-
-
     return map;
 
   }, [reorders]);
-
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Summary cards                                                           */
-
-  /* ---------------------------------------------------------------------- */
-
-
 
   const summaryCounts = useMemo(() => {
 
@@ -916,8 +595,6 @@ function AIForecasting() {
     let mediumRiskCount = 0;
 
     let totalRecommendedPurchase = 0;
-
-
 
     for (const item of predictions) {
 
@@ -933,15 +610,11 @@ function AIForecasting() {
 
       }
 
-
-
       if (item.risk_level === "MEDIUM") {
 
         mediumRiskCount++;
 
       }
-
-
 
       totalRecommendedPurchase += Number(
 
@@ -950,8 +623,6 @@ function AIForecasting() {
       );
 
     }
-
-
 
     return {
 
@@ -967,16 +638,6 @@ function AIForecasting() {
 
   }, [predictions]);
 
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Initial loading                                                         */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
   if (authLoading || loading) {
 
     return (
@@ -987,8 +648,6 @@ function AIForecasting() {
 
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-green-600" />
 
-
-
           <p className="mt-4 text-sm font-medium text-slate-600">
 
             {authLoading
@@ -998,8 +657,6 @@ function AIForecasting() {
               : "Loading AI forecasting..."}
 
           </p>
-
-
 
           <p className="mt-1 text-xs text-slate-400">
 
@@ -1015,16 +672,6 @@ function AIForecasting() {
 
   }
 
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Not logged in                                                           */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
   if (!user) {
 
     return (
@@ -1038,8 +685,6 @@ function AIForecasting() {
             Please log in
 
           </h2>
-
-
 
           <p className="mt-2 text-sm text-slate-500">
 
@@ -1057,23 +702,11 @@ function AIForecasting() {
 
   }
 
-
-
-  /* ---------------------------------------------------------------------- */
-
-  /* Page                                                                    */
-
-  /* ---------------------------------------------------------------------- */
-
-
-
   return (
 
     <div className="min-h-full bg-slate-100 p-2 md:p-2">
 
       <div className="mx-auto max-w-7xl">
-
-
 
         <header className="px-1 pb-0 pt-3 sm:pt-0">
 
@@ -1093,8 +726,6 @@ function AIForecasting() {
 
               </h2>
 
-
-
               <p className="mt-1 max-w-xl text-sm text-slate-600 sm:text-base dark:text-slate-400">
 
                 Demand predictions, waste risk scoring, and reorder guidance
@@ -1105,8 +736,6 @@ function AIForecasting() {
 
           </div>
 
-
-
           <div className="relative mb-4 mt-4 sm:mb-6 sm:mt-5">
 
             <div className="h-px w-full bg-gradient-to-r from-slate-300 via-slate-200 to-transparent dark:from-slate-600 dark:via-slate-700" />
@@ -1116,12 +745,6 @@ function AIForecasting() {
           </div>
 
         </header>
-
-
-
-        {/* Error */}
-
-
 
         {error && (
 
@@ -1134,8 +757,6 @@ function AIForecasting() {
           >
 
             <span>{error}</span>
-
-
 
             <button
 
@@ -1155,57 +776,7 @@ function AIForecasting() {
 
         )}
 
-
-
-        {/* Batch status */}
-
-
-
-        {batchStatus && (
-
-          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 sm:mb-6">
-
-            <span className="font-semibold">
-
-              Batch job {batchStatus.job_id}:
-
-            </span>
-
-
-
-            <span>{batchStatus.status}</span>
-
-
-
-            {batchStatus.items_processed != null && (
-
-              <span>
-
-                · {batchStatus.items_processed} items
-
-                processed
-
-              </span>
-
-            )}
-
-          </div>
-
-        )}
-
-
-
-        {/* Summary cards */}
-
-
-
         <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:gap-4 lg:grid-cols-4">
-
-
-
-          {/* Items */}
-
-
 
           <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
 
@@ -1215,15 +786,11 @@ function AIForecasting() {
 
             </p>
 
-
-
             <p className="mt-2 text-2xl font-bold text-slate-800">
 
               {summaryCounts.total}
 
             </p>
-
-
 
             <p className="mt-1 hidden text-xs text-slate-500 sm:block">
 
@@ -1233,12 +800,6 @@ function AIForecasting() {
 
           </div>
 
-
-
-          {/* High Risk */}
-
-
-
           <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
 
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">
@@ -1247,15 +808,11 @@ function AIForecasting() {
 
             </p>
 
-
-
             <p className="mt-2 text-2xl font-bold text-red-600">
 
               {summaryCounts.highRisk}
 
             </p>
-
-
 
             <p className="mt-1 hidden text-xs text-slate-500 sm:block">
 
@@ -1265,12 +822,6 @@ function AIForecasting() {
 
           </div>
 
-
-
-          {/* Medium Risk */}
-
-
-
           <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
 
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">
@@ -1279,15 +830,11 @@ function AIForecasting() {
 
             </p>
 
-
-
             <p className="mt-2 text-2xl font-bold text-orange-600">
 
               {summaryCounts.mediumRisk}
 
             </p>
-
-
 
             <p className="mt-1 hidden text-xs text-slate-500 sm:block">
 
@@ -1297,12 +844,6 @@ function AIForecasting() {
 
           </div>
 
-
-
-          {/* Recommended Purchase */}
-
-
-
           <div className="rounded-2xl bg-white p-4 shadow-sm sm:p-5">
 
             <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">
@@ -1311,15 +852,11 @@ function AIForecasting() {
 
             </p>
 
-
-
             <p className="mt-2 text-2xl font-bold text-blue-600">
 
               {summaryCounts.totalRecommendedPurchase.toFixed(0)}
 
             </p>
-
-
 
             <p className="mt-1 hidden text-xs text-slate-500 sm:block">
 
@@ -1331,17 +868,9 @@ function AIForecasting() {
 
         </div>
 
-
-
-        {/* Model information */}
-
-
-
         <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm sm:mb-6 sm:p-5">
 
           <div className="flex items-center justify-between gap-3 sm:gap-4">
-
-
 
             <div className="min-w-0">
 
@@ -1351,21 +880,15 @@ function AIForecasting() {
 
               </p>
 
-
-
               <p className="mt-1 text-lg font-bold text-slate-800">
 
                 {model?.name ?? "Prophet"}
 
               </p>
 
-
-
               <p className="mt-1 text-sm text-slate-500">
 
                 {model?.algorithm ?? "Prophet forecasting model"}
-
-
 
                 {model?.version
 
@@ -1377,8 +900,6 @@ function AIForecasting() {
 
             </div>
 
-
-
             <div className="shrink-0 rounded-xl bg-green-50 px-3 py-2.5 sm:px-4 sm:py-3">
 
               <p className="text-xs font-medium uppercase tracking-wide text-green-600">
@@ -1386,8 +907,6 @@ function AIForecasting() {
                 Model Status
 
               </p>
-
-
 
               <p className="mt-1 font-semibold text-green-700">
 
@@ -1401,19 +920,7 @@ function AIForecasting() {
 
         </div>
 
-
-
-        {/* Tabs + Controls */}
-
-
-
         <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm sm:mb-6 md:p-5">
-
-
-
-          {/* Tabs */}
-
-
 
           <div className="flex items-center gap-2 sm:flex-wrap sm:items-stretch">
 
@@ -1458,12 +965,6 @@ function AIForecasting() {
               ))}
 
             </div>
-
-
-
-            {/* Refresh */}
-
-
 
             <button
 
@@ -1513,15 +1014,7 @@ function AIForecasting() {
 
           </div>
 
-
-
-          {/* Search + filter */}
-
-
-
           <div className="mt-4 grid gap-3 border-t border-slate-100 pt-4 md:grid-cols-3">
-
-
 
             <div className="relative md:col-span-2">
 
@@ -1530,8 +1023,6 @@ function AIForecasting() {
                 🔍
 
               </span>
-
-
 
               <input
 
@@ -1557,8 +1048,6 @@ function AIForecasting() {
 
             </div>
 
-
-
             {activeTab !== "reorder" && (
 
               <select
@@ -1581,15 +1070,11 @@ function AIForecasting() {
 
                 </option>
 
-
-
                 <option value="LOW">
 
                   Low
 
                 </option>
-
-
 
                 <option value="MEDIUM">
 
@@ -1597,15 +1082,11 @@ function AIForecasting() {
 
                 </option>
 
-
-
                 <option value="HIGH">
 
                   High
 
                 </option>
-
-
 
                 <option value="CRITICAL">
 
@@ -1619,19 +1100,11 @@ function AIForecasting() {
 
           </div>
 
-
-
-          {/* Active filters */}
-
-
-
           {(search || riskFilter) && (
 
             <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
 
               <span>Filters active</span>
-
-
 
               <button
 
@@ -1653,12 +1126,6 @@ function AIForecasting() {
 
         </div>
 
-
-
-        {/* Predictions */}
-
-
-
         {activeTab === "predictions" && (
 
           <DataTable
@@ -1671,7 +1138,7 @@ function AIForecasting() {
 
               predictions.length === 0
 
-                ? "Run a batch prediction to generate demand forecasts."
+                ? "No demand forecasts are available yet."
 
                 : "Try changing your search or filters."
 
@@ -1701,8 +1168,6 @@ function AIForecasting() {
 
               key: item.inventory_id,
 
-
-
               onClick: () =>
 
                 setSelectedItem({
@@ -1712,8 +1177,6 @@ function AIForecasting() {
                   name: item.product_name,
 
                 }),
-
-
 
               cells: [
 
@@ -1727,8 +1190,6 @@ function AIForecasting() {
 
                 </div>,
 
-
-
                 <span
 
                   key="sku"
@@ -1740,8 +1201,6 @@ function AIForecasting() {
                   {item.sku ?? "—"}
 
                 </span>,
-
-
 
                 <span key="stock">
 
@@ -1755,8 +1214,6 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <span key="demand">
 
                   {Number(
@@ -1769,8 +1226,6 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <RiskBadge
 
                   key="risk"
@@ -1778,8 +1233,6 @@ function AIForecasting() {
                   level={item.risk_level}
 
                 />,
-
-
 
                 <span
 
@@ -1798,8 +1251,6 @@ function AIForecasting() {
                   units
 
                 </span>,
-
-
 
                 <span
 
@@ -1824,12 +1275,6 @@ function AIForecasting() {
           />
 
         )}
-
-
-
-        {/* Waste Risk */}
-
-
 
         {activeTab === "waste-risk" && (
 
@@ -1865,8 +1310,6 @@ function AIForecasting() {
 
               key: item.inventory_id,
 
-
-
               onClick: () =>
 
                 setSelectedItem({
@@ -1876,8 +1319,6 @@ function AIForecasting() {
                   name: item.product_name,
 
                 }),
-
-
 
               cells: [
 
@@ -1893,8 +1334,6 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <span
 
                   key="sku"
@@ -1906,8 +1345,6 @@ function AIForecasting() {
                   {item.sku ?? "—"}
 
                 </span>,
-
-
 
                 <span
 
@@ -1927,8 +1364,6 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <RiskBadge
 
                   key="risk"
@@ -1936,8 +1371,6 @@ function AIForecasting() {
                   level={item.risk_level}
 
                 />,
-
-
 
                 <span
 
@@ -1963,15 +1396,11 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <span key="stock">
 
                   {item.current_stock} units
 
                 </span>,
-
-
 
                 <span key="demand">
 
@@ -1994,12 +1423,6 @@ function AIForecasting() {
           />
 
         )}
-
-
-
-        {/* Reorder */}
-
-
 
         {activeTab === "reorder" && (
 
@@ -2029,8 +1452,6 @@ function AIForecasting() {
 
               key: item.inventory_id,
 
-
-
               onClick: () =>
 
                 setSelectedItem({
@@ -2040,8 +1461,6 @@ function AIForecasting() {
                   name: item.product_name,
 
                 }),
-
-
 
               cells: [
 
@@ -2057,8 +1476,6 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <span
 
                   key="sku"
@@ -2071,15 +1488,11 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <span key="stock">
 
                   {item.current_stock} units
 
                 </span>,
-
-
 
                 <span
 
@@ -2098,8 +1511,6 @@ function AIForecasting() {
                   units
 
                 </span>,
-
-
 
                 <span
 
@@ -2122,12 +1533,6 @@ function AIForecasting() {
           />
 
         )}
-
-
-
-        {/* High Risk */}
-
-
 
         {activeTab === "high-risk" && (
 
@@ -2163,8 +1568,6 @@ function AIForecasting() {
 
               key: item.inventory_id,
 
-
-
               onClick: () =>
 
                 setSelectedItem({
@@ -2174,8 +1577,6 @@ function AIForecasting() {
                   name: item.product_name,
 
                 }),
-
-
 
               cells: [
 
@@ -2191,8 +1592,6 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <span
 
                   key="sku"
@@ -2204,8 +1603,6 @@ function AIForecasting() {
                   {item.sku ?? "—"}
 
                 </span>,
-
-
 
                 <span key="stock">
 
@@ -2227,8 +1624,6 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <span key="demand">
 
                   {Number(
@@ -2241,8 +1636,6 @@ function AIForecasting() {
 
                 </span>,
 
-
-
                 <RiskBadge
 
                   key="risk"
@@ -2250,8 +1643,6 @@ function AIForecasting() {
                   level={item.risk_level}
 
                 />,
-
-
 
                 <span
 
@@ -2270,8 +1661,6 @@ function AIForecasting() {
                   /100
 
                 </span>,
-
-
 
                 <span
 
@@ -2298,8 +1687,6 @@ function AIForecasting() {
         )}
 
       </div>
-
-
 
       {selectedItem && (
 
@@ -2331,16 +1718,6 @@ function AIForecasting() {
 
 }
 
-
-
-/* ====================================================================== */
-
-/* Data Table                                                              */
-
-/* ====================================================================== */
-
-
-
 interface DataTableRow {
 
   key: number | string;
@@ -2350,8 +1727,6 @@ interface DataTableRow {
   cells: ReactNode[];
 
 }
-
-
 
 interface DataTableProps {
 
@@ -2369,8 +1744,6 @@ interface DataTableProps {
 
 }
 
-
-
 function DataTable({
 
   columns,
@@ -2386,17 +1759,25 @@ function DataTable({
   mobileBadgeIndex,
 
 }: DataTableProps) {
+
   const PAGE_SIZE = 25;
+
   const [page, setPage] = useState(1);
+
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
 
   useEffect(() => {
+
     setPage(1);
+
   }, [rows.length, columns.join("|")]);
 
   const visibleRows = useMemo(
+
     () => rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+
     [rows, page],
+
   );
 
   if (rows.length === 0) {
@@ -2411,15 +1792,11 @@ function DataTable({
 
         </div>
 
-
-
         <h3 className="mt-4 font-semibold text-slate-800">
 
           {emptyTitle}
 
         </h3>
-
-
 
         <p className="mt-1 text-sm text-slate-500">
 
@@ -2433,15 +1810,9 @@ function DataTable({
 
   }
 
-
-
   return (
 
     <>
-
-      {/* Desktop */}
-
-
 
       <div className="hidden overflow-hidden rounded-2xl bg-white shadow-sm md:block">
 
@@ -2472,8 +1843,6 @@ function DataTable({
               </tr>
 
             </thead>
-
-
 
             <tbody>
 
@@ -2521,12 +1890,6 @@ function DataTable({
 
       </div>
 
-
-
-      {/* Mobile */}
-
-
-
       <div className="space-y-3 md:hidden">
 
         {visibleRows.map((row) => (
@@ -2543,10 +1906,6 @@ function DataTable({
 
           >
 
-            {/* Product + SKU + badge */}
-
-
-
             <div className="flex items-start justify-between gap-3">
 
               <div className="min-w-0 flex-1">
@@ -2557,8 +1916,6 @@ function DataTable({
 
                 </div>
 
-
-
                 <div className="mt-0.5 text-xs">
 
                   {row.cells[1]}
@@ -2566,8 +1923,6 @@ function DataTable({
                 </div>
 
               </div>
-
-
 
               {mobileBadgeIndex !== undefined && (
 
@@ -2580,12 +1935,6 @@ function DataTable({
               )}
 
             </div>
-
-
-
-            {/* Labelled fields */}
-
-
 
             <div className="mt-3 grid grid-cols-2 gap-2">
 
@@ -2603,13 +1952,9 @@ function DataTable({
 
                 }
 
-
-
                 const isWide =
 
                   columns[index] === "Reason";
-
-
 
                 return (
 
@@ -2631,8 +1976,6 @@ function DataTable({
 
                     </p>
 
-
-
                     <div className="mt-0.5 text-sm text-slate-800">
 
                       {cell}
@@ -2647,8 +1990,6 @@ function DataTable({
 
             </div>
 
-
-
             <div className="mt-3 text-right text-xs font-medium text-green-600">
 
               View details →
@@ -2662,16 +2003,27 @@ function DataTable({
       </div>
 
       {rows.length > PAGE_SIZE && (
+
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
+
           <p className="text-xs text-slate-500">
+
             Showing {Math.min((page - 1) * PAGE_SIZE + 1, rows.length)}–{Math.min(page * PAGE_SIZE, rows.length)} of {rows.length} items
+
           </p>
+
           <div className="flex items-center gap-2">
+
             <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+
             <span className="min-w-16 text-center text-xs text-slate-500">Page {page} of {pageCount}</span>
+
             <button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page >= pageCount} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+
           </div>
+
         </div>
+
       )}
 
     </>
@@ -2679,7 +2031,5 @@ function DataTable({
   );
 
 }
-
-
 
 export default AIForecasting;
